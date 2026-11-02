@@ -361,7 +361,6 @@
     <img id="modal-img" src="" style="max-width: 95%; max-height: 95%; border-radius: 12px;">
   </div>
 </div>
-
 <script>
 const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
@@ -1086,7 +1085,7 @@ function renderMyBookings() {
     });
   });
 
-  all Bookings.sort((a, b) => b.sortTime - a.sortTime);
+  allBookings.sort((a,b) => b.sortTime - a.sortTime);
 
   if (allBookings.length === 0) {
     activeList.innerHTML = '<p style="color:var(--muted); text-align:center;">У вас нет активных броней.</p>';
