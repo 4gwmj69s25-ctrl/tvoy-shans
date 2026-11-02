@@ -365,7 +365,9 @@
 <script>
 const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { lockAcquireTimeout: 5000 }
+});
 
 let raffles = [], currentRaffle = null, selectedTickets = new Set(), isAdmin = false;
 let uploadedImageBase64 = "";
@@ -521,28 +523,18 @@ function toggleAdminRole() {
   }
 }
 
-async function showAdminLogin() {
+function showAdminLogin() {
   const pwd = prompt('Введите пароль администратора:');
   if (pwd === null) return;
 
-  try {
-    const { data, error } = await supabaseClient.rpc('check_admin_password', {
-      input_password: pwd
-    });
-
-    if (error) throw error;
-
-    if (data === true) {
-      isAdmin = true;
-      localStorage.setItem('isAdmin', 'true');
-      checkAdminStatus();
-      loadRaffles();
-      showToast('Вы вошли как администратор', 'success');
-    } else {
-      showToast('Неверный пароль', 'error');
-    }
-  } catch (err) {
-    showToast('Ошибка проверки: ' + err.message, 'error');
+  if (pwd.trim() === 'RjhJkM01200111') {
+    isAdmin = true;
+    localStorage.setItem('isAdmin', 'true');
+    checkAdminStatus();
+    loadRaffles();
+    showToast('Вы вошли как администратор', 'success');
+  } else {
+    showToast('Неверный пароль', 'error');
   }
 }
 
@@ -1094,7 +1086,7 @@ function renderMyBookings() {
     });
   });
 
-  allBookings.sort((a, b) => b.sortTime - a.sortTime);
+  all Bookings.sort((a, b) => b.sortTime - a.sortTime);
 
   if (allBookings.length === 0) {
     activeList.innerHTML = '<p style="color:var(--muted); text-align:center;">У вас нет активных броней.</p>';
