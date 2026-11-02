@@ -224,6 +224,14 @@
         <input id="c-tickets" type="number" inputmode="numeric" placeholder="Кол-во билетов">
         <input id="c-price" type="number" inputmode="numeric" placeholder="Цена (₽)">
       </div>
+      
+      <!-- УМНЫЙ КАЛЬКУЛЯТОР -->
+      <div id="calc-preview" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: 14px; color: #166534; display: flex; justify-content: space-between; align-items: center;">
+        <span>💰 Итого к сбору:</span>
+        <strong id="calc-total" style="font-size: 16px;">0 ₽</strong>
+      </div>
+      <!-- КОНЕЦ КАЛЬКУЛЯТОРА -->
+
       <select id="c-prizes"><option value="1">1 приз</option><option value="2">2 приза</option><option value="3">3 приза</option></select>
       <select id="c-time-select">
         <option value="">Без таймера</option>
@@ -356,6 +364,18 @@ function getNextIcon() {
   return '⭐';
 }
 
+// УМНЫЙ КАЛЬКУЛЯТОР
+function updateCalc() {
+  const tickets = parseInt(document.getElementById('c-tickets').value) || 0;
+  const price = parseInt(document.getElementById('c-price').value) || 0;
+  const total = tickets * price;
+  
+  const totalEl = document.getElementById('calc-total');
+  if (totalEl) {
+    totalEl.innerText = total.toLocaleString('ru-RU') + ' ₽';
+  }
+}
+
 function showToast(message, type = 'default') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -369,6 +389,14 @@ window.onload = () => {
   checkAdminStatus();
   const savedReq = localStorage.getItem('myPaymentDetails');
   if (savedReq) document.getElementById('c-req').value = savedReq;
+  
+  // Подключаем калькулятор
+  const cTickets = document.getElementById('c-tickets');
+  const cPrice = document.getElementById('c-price');
+  if (cTickets && cPrice) {
+    cTickets.addEventListener('input', updateCalc);
+    cPrice.addEventListener('input', updateCalc);
+  }
   
   loadRaffles();
   setInterval(checkExpiredBookings, 60000);
@@ -1029,8 +1057,7 @@ function renderMyBookings() {
               <p style="font-size:14px; margin:4px 0; color:#064e3b;">К оплате: <b>${pending.length * r.ticketPrice} ₽</b></p>
               <p style="font-size:13px; color:#b45309;">Реквизиты: ${r.paymentDetails}</p>
               <button class="btn-success" style="margin-top:10px; padding:10px; font-size:14px;" onclick="payBooking('${r.id}', '${code}')">✅ Я оплатил</button>
-              <button class="btn-outline" style="margin-top:8px; padding:10px; font-size:14px; background:#fff;" onclick="cancelBooking('${r.id}', '${code}')">❌ Отменить</button>
-            </div>`;
+              <button class="btn-outline" style="margin-top:8px; padding:10px; font-size:14px; background:#fff;" onclick="cancelBooking('${r.id}', '${code}')">❌ Отменить</button></div>`;
           } else {
             html += `<div style="background:#fef2f2; padding:10px; border-radius:8px; margin-bottom:8px; color:#991b1b;"><span style="font-weight:800;">⌛ Время вышло</span><br>Бронь слетела.</div>`;
           }
@@ -1153,6 +1180,7 @@ async function createRaffle() {
     document.getElementById('preview-img').style.display = 'none';
     document.getElementById('c-name').value = ''; document.getElementById('c-req').value = '';
     document.getElementById('c-tickets').value = ''; document.getElementById('c-price').value = '';
+    updateCalc(); // Сбрасываем калькулятор
     
     showToast('Розыгрыш создан! Ищите в "На проверке".', 'success');
     loadRaffles(); switchView('main');
