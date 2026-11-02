@@ -2,246 +2,565 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f172a">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f0f9ff">
 <title>Твой Шанс</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
-  :root { --bg: #f0f9ff; --card: #ffffff; --text: #1e293b; --muted: #64748b; --accent: #059669; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --border: #e2e8f0; }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-  body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; line-height: 1.5; padding-bottom: 80px; }
-  .container { max-width: 600px; margin: 0 auto; }
-  h1 { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 8px; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .subtitle { text-align: center; color: var(--muted); font-size: 15px; margin-bottom: 24px; }
-  .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-  input, select, button { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); background: #f8fafc; color: var(--text); font-size: 16px; outline: none; margin-bottom: 10px; }
-  input:focus, select:focus { border-color: var(--accent); background: #fff; }
-  button { cursor: pointer; font-weight: 600; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.1s; margin-bottom: 0; }
-  button:active { transform: scale(0.98); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-success { background: var(--success); color: white; }
-  .btn-danger { background: var(--danger); color: white; }
-  .btn-warning { background: var(--warning); color: #000; }
-  .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
-  .btn-sm { padding: 8px 12px; font-size: 14px; width: auto; border-radius: 8px; }
-  .row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  .row > * { flex: 1; min-width: 100px; margin-bottom: 0; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: #e2e8f0; padding: 4px; border-radius: 12px; }
-  .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; color: var(--muted); transition: 0.2s; }
-  .tab.active { background: white; color: var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
-  .game-card { background: var(--card); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; display: flex; padding: 12px; gap: 12px; position: relative; }
-  .game-card img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; background: #f1f5f9; }
-  .game-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-  .game-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
-  .game-price { font-size: 15px; color: var(--accent); font-weight: 700; }
-  .game-stats { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .game-timer-main { font-size: 12px; color: var(--warning); font-weight: bold; margin-top: 4px; }
-  .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; margin: 16px 0; }
-  .ticket { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; user-select: none; border: 2px solid transparent; background: #f1f5f9; color: var(--text); }
-  .ticket-free { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-  .ticket-selected { background: var(--accent); color: white; transform: scale(1.05); }
-  .ticket-pending { background: #fef3c7; color: #92400e; border-color: #fde68a; cursor: not-allowed; }
-  .ticket-taken { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; text-decoration: line-through; }
-  .ticket-waiting { background: #e2e8f0; color: #475569; cursor: not-allowed; }
+  :root { 
+    --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 50%, #ffffff 100%);
+    --card: #ffffff; 
+    --card-border: #e2e8f0;
+    --text: #1e293b; 
+    --muted: #64748b; 
+    --accent: #059669; 
+    --accent-hover: #047857;
+    --accent-glow: rgba(5, 150, 105, 0.15);
+    --success: #10b981; 
+    --danger: #ef4444; 
+    --warning: #f59e0b; 
+    --border-radius: 16px;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  
+  body { 
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text); 
+    min-height: 100vh; 
+    padding: 16px 16px 80px 16px; 
+    line-height: 1.5;
+  }
+  
+  .container { max-width: 500px; margin: 0 auto; }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeInUp 0.4s ease-out forwards; }
+
+  .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+  .header h1 { 
+    font-size: 32px; font-weight: 900; 
+    color: #047857;
+    margin-bottom: 4px; letter-spacing: -1px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .header h1 span { font-size: 36px; }
+  .header p { color: var(--muted); font-size: 14px; font-weight: 500; margin-bottom: 16px; }
+  
+  .share-btn { 
+    display: inline-flex; align-items: center; gap: 6px; 
+    background: #ffffff; color: #047857; 
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; 
+    border: 1px solid var(--card-border); cursor: pointer; transition: 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .share-btn:active { transform: scale(0.95); }
+
+  .card { 
+    background: var(--card); 
+    border-radius: var(--border-radius); 
+    padding: 16px; 
+    margin-bottom: 16px; 
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s;
+  }
+  .card:active { transform: scale(0.98); }
+
+  input, select { 
+    width: 100%; padding: 14px; border-radius: 12px; 
+    border: 1px solid var(--card-border); background: #f8fafc; 
+    color: var(--text); font-size: 16px; outline: none; margin-bottom: 12px; transition: 0.2s;
+  }
+  input:focus { border-color: var(--accent); background: #ffffff; box-shadow: 0 0 0 3px var(--accent-glow); }
+  
+  button { 
+    width: 100%; padding: 14px; border-radius: 12px; border: none; 
+    font-size: 16px; font-weight: 600; cursor: pointer; 
+    display: flex; align-items: center; justify-content: center; gap: 8px; 
+    transition: 0.2s; color: white;
+  }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.6; pointer-events: none; }
+  
+  .btn-primary { background: var(--accent); box-shadow: 0 4px 15px var(--accent-glow); }
+  .btn-success { background: var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15); }
+  .btn-danger { background: var(--danger); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15); }
+  .btn-warning { background: var(--warning); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15); color: #fff; }
+  .btn-outline { background: #ffffff; border: 1px solid var(--card-border); color: var(--text); }
+  .btn-sm { padding: 8px 12px; font-size: 13px; width: auto; border-radius: 8px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; background: #f1f5f9; padding: 4px; border-radius: 12px; }
+  .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; color: var(--muted); border-radius: 8px; cursor: pointer; transition: 0.3s; }
+  .tab.active { background: #ffffff; color: var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .game-card { 
+    display: flex; flex-direction: row; align-items: center; position: relative; overflow: hidden; 
+    border-radius: var(--border-radius); background: var(--card); border: 1px solid var(--card-border); cursor: pointer; padding: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+  }
+  .game-card img { width: 90px; height: 90px; object-fit: cover; border-radius: 12px; margin-right: 16px; }
+  .game-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .game-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; line-height: 1.2; }
+  .game-price { color: var(--accent); font-weight: 700; font-size: 15px; }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .badge-prizes { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+  .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; margin: 16px 0; }
+  .ticket { 
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
+    border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; 
+    border: 1px solid transparent; transition: 0.15s; position: relative;
+  }
+  .ticket:active { transform: scale(0.9); }
+  
+  .ticket-free { background: #ecfdf5; color: #047857; border-color: #6ee7b7; font-weight: 800; }
+  .ticket-selected { background: #6366f1; color: white; border-color: #4f46e5; } 
+  .ticket-pending { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+  .ticket-taken { background: #f8fafc; color: #94a3b8; text-decoration: line-through; border-color: #e2e8f0; }
+  .ticket-waiting { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+
+  .ticket-icon { position: absolute; top: 2px; right: 4px; font-size: 12px; line-height: 1; }
+
+  .participant-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+  .participant-row:last-child { border-bottom: none; }
+  .delete-btn-icon { background: #f1f5f9; color: #64748b; border: none; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-left: 8px; transition: 0.2s; }
+  .delete-btn-icon:active { background: #e2e8f0; }
+
+  .bottom-nav { 
+    position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: #ffffff; 
+    display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); 
+    border-top: 1px solid #e2e8f0; z-index: 100;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.02);
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 600; cursor: pointer; gap: 4px; position: relative; transition: 0.2s; }
+  .nav-item.active { color: var(--accent); }
+  .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+  
+  .nav-badge {
+    position: absolute; top: -4px; right: 4px;
+    background: var(--danger); color: white;
+    font-size: font-weight: 800;
+    min-width: 16px; height: 16px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+  }
+
+  .bottom-links { text-align: center; font-size: 13px; color: var(--muted); margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .bottom-links a, .bottom-links span { cursor: pointer; text-decoration: underline; font-weight: 500; }
+  
+  #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
+  .toast { background: #ffffff; padding: 14px; border-radius: 12px; border-left: 4px solid var(--accent); color: var(--text); font-size: 14px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: slideDown 0.3s forwards; }
+  .toast.error { border-color: var(--danger); }
+  .toast.success { border-color: var(--success); }
+  @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
   .hidden { display: none !important; }
-  .bottom-bar { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
-  .admin-login-link { text-align: center; font-size: 14px; color: var(--muted); margin-top: 24px; cursor: pointer; text-decoration: underline; }
-  .booking-summary { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-top: 16px; }
-  .my-booking-card { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 12px; }
-  .my-booking-card.active-booking { border-color: #fcd34d; background: #fffbeb; }
-  .my-booking-card.success-booking { border-color: #86efac; background: #f0fdf4; }
-  .my-booking-card.reject-booking { border-color: #fca5a5; background: #fef2f2; }
-  .admin-list-item { background: var(--card); border: 1px solid #fcd34d; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
-  .admin-list-item .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  .admin-list-item .actions button { flex: 1; min-width: 90px; font-size: 13px; padding: 8px 4px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; table-layout: fixed; }
-  th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; word-wrap: break-word; }
-  th:nth-child(1), td:nth-child(1) { width: 40%; }
-  th:nth-child(2), td:nth-child(2) { width: 30%; }
-  th:nth-child(3), td:nth-child(3) { width: 15%; text-align: center; }
-  th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; }
-  .action-btns { display: flex; gap: 4px; justify-content: flex-end; }
-  .upload-btn { background: #f8fafc; color: var(--text); border-radius: 12px; padding: 14px; text-align: center; cursor: pointer; display: block; border: 1px dashed var(--border); font-weight: 600; margin-bottom: 8px; }
-  .upload-btn input { display: none; }
-  #preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; margin-top: 8px; display: none; border: 2px solid var(--accent); }
-  .loader { border: 4px solid rgba(255,255,255,0.3); border-left-color: white; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  .winner-card { text-align: center; padding: 32px 24px; border-radius: 20px; background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%); border: 2px solid var(--success); box-shadow: 0 8px 30px rgba(16,185,129,0.15); margin: 16px 0; position: relative; overflow: hidden; }
-  .winner-cup { font-size: 72px; margin-bottom: 16px; animation: bounce 2s infinite; }
-  .winner-text { font-size: 14px; font-weight: 800; color: var(--success); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
-  .winner-name { font-size: 26px; color: var(--text); font-weight: 900; margin-bottom: 16px; }
-  .winner-prize-box { background: rgba(16,185,129,0.1); border-radius: 12px; padding: 12px; margin-bottom: 16px; }
-  .winner-prize-title { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-  .winner-prize-name { font-size: 18px; color: var(--accent); font-weight: bold; }
-  .winner-ticket { font-size: 14px; color: var(--muted); }
-  .winner-ticket b { color: var(--text); }
-  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-  #image-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; cursor: pointer; }
-  #image-modal img { max-width: 95%; max-height: 95%; border-radius: 8px; }
+  .admin-badge { background: #f59e0b; color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; margin-left: 8px; vertical-align: middle; }
+  
+  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+  .modal-content { background: #ffffff; padding: 24px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
 </style>
 </head>
 <body>
-<div id="image-modal" onclick="this.style.display='none'"><img id="modal-img" src=""></div>
+<div id="toast-container"></div>
+
+<!-- ОКНО ПОДДЕРЖКИ -->
+<div class="modal" id="support-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom: 12px; color: var(--text);">💬 Поддержка</h3>
+    <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">Возникли вопросы или проблемы с оплатой? Напишите нам!</p>
+    <a href="https://vk.ru/s.ermakov1" target="_blank" class="btn-primary" style="text-decoration: none; display: flex;">Перейти в ВК</a>
+    <button class="btn-outline" style="margin-top: 12px;" onclick="document.getElementById('support-modal').style.display='none'">Закрыть</button>
+  </div>
+</div>
+
+<!-- НОВОЕ ОКНО С ПРАВИЛАМИ -->
+<div class="modal" id="rules-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()" style="text-align: left; max-height: 80vh; overflow-y: auto;">
+    <h3 style="margin-bottom: 16px; color: var(--text); text-align: center;">📖 Как играть</h3>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 1. Выбирай билеты</b><br>Заходи на сайт, выбирай активный розыгрыш. Нажми на зеленые свободные билеты. Ты можешь выбрать как один билет, так и несколько.</p>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 2. Бронируй и оплачивай</b><br>Введи свое имя. Система выдаст тебе <b>личный код</b>. У тебя будет 5 минут, чтобы перевести деньги по реквизитам. После оплаты нажми кнопку <b>«Я оплатил»</b> в разделе «Мои брони».</p>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 3. Жди подтверждения</b><br>Организатор проверит оплату, и твой билет станет зеленым. Если не успел оплатить за 5 минут — бронь сгорит.</p>
+    
+    <p style="margin-bottom: 16px; font-size: 14px;"><b>Как проходит розыгрыш?</b><br>Когда все билеты оплачены, организатор крутит рулетку. Система случайно выбирает победителя. Чем больше билетов ты купил, тем выше шанс!</p>
+
+    <p style="margin-bottom: 16px; font-size: 14px; background: #f0fdf4; padding: 10px; border-radius: 8px; color: #166534;">💡 <b>Есть идея приза?</b><br>Напиши нам в поддержку, и мы разыграем то, что ты хочешь!</p>
+
+    <button class="btn-primary" onclick="document.getElementById('rules-modal').style.display='none'">Понятно, играем!</button>
+  </div>
+</div>
+
 <div class="container" id="app">
-  <h1>🍀 Твой Шанс</h1>
-  <p class="subtitle">Испытай удачу — забери приз!</p>
-  
-  <div id="view-main">
+  <div class="header fade-in">
+    <h1><span>🍀</span> Твой Шанс</h1>
+    <p>Испытай удачу — забери приз!</p>
+    <div class="share-btn" onclick="shareLink()">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+      Поделиться с друзьями
+    </div>
+  </div>
+
+  <div id="view-main" class="fade-in">
     <div class="tabs">
-      <div class="tab active" id="tab-active" onclick="switchTab('active')">Активные</div>
-      <div class="tab" id="tab-finished" onclick="switchTab('finished')">Завершенные</div>
+      <div class="tab active" id="tab-active-btn" onclick="switchTab('active')">Активные (0)</div>
+      <div class="tab" id="tab-finished-btn" onclick="switchTab('finished')">Завершенные</div>
     </div>
     <div id="grid-active" class="grid"></div>
     <div id="grid-finished" class="grid hidden"></div>
     
-    <button class="btn-outline" style="margin-bottom:20px;" onclick="switchView('history')">⏳ Мои брони</button>
-
-    <div id="admin-panel" class="card hidden" style="margin-top: 20px;">
-      <h2>Управление</h2>
-      <div class="row" style="flex-direction: column;">
-        <button class="btn-primary" onclick="switchView('create')">➕ Создать розыгрыш</button>
-        <button class="btn-outline" onclick="toggleAdminSection('pending')">⏳ Ожидают оплаты (<span id="pendingCount">0</span>)</button>
-        <div id="pendingList" class="hidden" style="margin-top: 12px;"></div>
-        <button class="btn-outline" onclick="toggleAdminSection('review')">📝 На проверке (<span id="reviewCount">0</span>)</button>
-        <div id="reviewList" class="hidden" style="margin-top: 12px;"></div>
-        <button class="btn-danger" onclick="adminLogout()">Выйти</button>
-      </div>
+    <div id="admin-panel" class="card hidden" style="margin-top: 20px; border-color: var(--card-border);">
+      <h2 style="margin-bottom: 12px; font-size: 18px; color: var(--text);">Управление <span class="admin-badge">ADMIN</span></h2>
+      <button class="btn-primary" onclick="switchView('create')" style="margin-bottom: 8px;">➕ Создать розыгрыш</button>
+      <button class="btn-warning" onclick="toggleAdminSection('pending')" style="margin-bottom: 8px;">⏳ Ожидают оплаты (<span id="pendingCount">0</span>)</button>
+      <div id="pendingList" class="hidden" style="margin-bottom: 8px;"></div>
+      <button class="btn-warning" onclick="toggleAdminSection('review')" style="margin-bottom: 8px;">📝 На проверке (<span id="reviewCount">0</span>)</button>
+      <div id="reviewList" class="hidden" style="margin-bottom: 8px;"></div>
+      <button class="btn-outline" onclick="toggleAdminRole()">Выйти</button>
     </div>
-
-    <div class="bottom-bar">
-      <button class="btn-outline" onclick="copyMainLink()">🔗 Скопировать ссылку</button>
-      <a href="https://vk.ru/s.ermakov1" target="_blank" class="btn-outline" style="text-decoration:none;">💬 Служба поддержки</a>
+    
+    <div class="bottom-links">
+      <span onclick="document.getElementById('rules-modal').style.display='flex'" style="color: #059669; font-weight: 700; margin-bottom: 4px;">📖 Как играть и правила</span>
+      <span id="adminLoginBtn" onclick="showAdminLogin()">🔐 Вход для организатора</span>
+      <span onclick="document.getElementById('support-modal').style.display='flex'">💬 Служба поддержки</span>
     </div>
-    <div class="admin-login-link" id="loginBtn" onclick="showAdminLogin()">🔒 Вход для организатора</div>
   </div>
 
-  <div id="view-history" class="hidden">
+  <div id="view-history" class="hidden fade-in">
     <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← На главную</button>
-    <h2>Мои брони</h2>
+    <h2 style="font-size: 20px; margin-bottom: 12px;">Мои брони</h2>
     <div id="my-history-active"></div>
   </div>
 
-  <div id="view-create" class="hidden">
+  <div id="view-create" class="hidden fade-in">
     <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← Назад</button>
     <div class="card">
-      <h2>Новый розыгрыш</h2>
-      <div class="row"><input id="c-tickets" type="number" placeholder="Кол-во билетов"><input id="c-price" type="number" placeholder="Цена (₽)"></div>
-      <div class="row">
-        <select id="c-prizes"><option value="1">1 приз</option><option value="2">2 приза</option><option value="3">3 приза</option></select>
-        <select id="c-time-select">
-          <option value="">Без таймера</option>
-          <option value="3600000">1 час</option>
-          <option value="10800000">3 часа</option>
-          <option value="21600000">6 часов</option>
-          <option value="43200000">12 часов</option>
-          <option value="86400000">1 день</option>
-          <option value="259200000">3 дня</option>
-          <option value="604800000">7 дней</option>
-        </select>
+      <h2 style="margin-bottom: 16px; font-size: 20px;">Новый розыгрыш</h2>
+      <input id="c-name" placeholder="Название приза" autocomplete="off">
+      <div style="display: flex; gap: 8px;">
+        <input id="c-tickets" type="number" inputmode="numeric" placeholder="Кол-во билетов">
+        <input id="c-price" type="number" inputmode="numeric" placeholder="Цена (₽)">
       </div>
-      <input id="c-name" placeholder="Название приза">
-      <input id="c-req" placeholder="Реквизиты (Сбер 8900...)">
+      
+      <!-- КАЛЬКУЛЯТОР -->
+      <div id="calc-preview" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: 14px; color: #166534; display: flex; justify-content: space-between; align-items: center;">
+        <span>💰 Итого к сбору:</span>
+        <strong id="calc-total" style="font-size: 16px;">0 ₽</strong>
+      </div>
+
+      <select id="c-prizes"><option value="1">1 приз</option><option value="2">2 приза</option><option value="3">3 приза</option></select>
+      <select id="c-time-select">
+        <option value="">Без таймера</option>
+        <option value="3600000">1 час</option>
+        <option value="10800000">3 часа</option>
+        <option value="21600000">6 часов</option>
+        <option value="43200000">12 часов</option>
+        <option value="86400000">1 день</option>
+        <option value="259200000">3 дня</option>
+        <option value="604800000">7 дней</option>
+        <option value="2592000000">1 месяц</option>
+      </select>
+      <input id="c-req" placeholder="Реквизиты (Сбер 8900...)" autocomplete="off">
       <p style="font-size:13px; color:var(--muted); margin-bottom:8px;">Фото приза:</p>
-      <label class="upload-btn">📁 Выбрать из галереи<input type="file" id="c-img-file" accept="image/*" onchange="handleImageUpload(event)"></label>
-      <img id="preview-img" alt="Превью">
+      <label class="btn-outline" style="text-align: center; padding: 14px; border-radius: 12px; cursor: pointer; display: block; font-size: 14px;">
+        📁 Выбрать из галереи
+        <input type="file" id="c-img-file" accept="image/*" onchange="handleImageUpload(event)" style="display: none;">
+      </label>
+      <img id="preview-img" alt="Превью" style="width: 100%; height: 140px; object-fit: cover; border-radius: 10px; margin-top: 12px; display: none; border: 2px solid var(--accent);">
       <button class="btn-primary" style="margin-top: 16px;" onclick="createRaffle()" id="btn-create-raffle">Создать и на проверку</button>
     </div>
   </div>
 
-  <div id="view-raffle" class="hidden">
-    <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← Назад</button>
-    
-    <div class="card" id="draw-block" style="margin-bottom: 16px; border-color: #fcd34d; background: #fffbeb;">
-      <button id="draw-btn" class="btn-warning hidden" style="margin-bottom: 0;" onclick="startDraw()">🎲 Крутить рулетку</button>
+<div id="view-raffle" class="hidden fade-in">
+    <button class="btn-outline btn-sm" style="margin-bottom: 12px;" onclick="switchView('main')">← Назад</button>
+    <div class="card hidden" id="draw-block" style="border-color: #fcd34d; background: #fffbeb;">
+      <button id="draw-btn" class="btn-warning hidden" onclick="startDraw()">🎲 Крутить рулетку</button>
       <div id="draw-area" class="hidden" style="text-align: center;">
-        <p id="draw-title" style="color: var(--muted); margin-bottom: 16px;">Розыгрыш...</p>
-        <div id="rolling-num" style="font-size: 64px; font-weight: 900; color: var(--accent);"></div>
+        <p id="draw-title" style="color: #92400e; margin-bottom: 16px; font-weight: bold;">Розыгрыш...</p>
+        <div id="rolling-num" style="font-size: 64px; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow);"></div>
       </div>
-      <div id="winners-list"></div>
+      <div id="winners-list" style="margin-top: 16px;"></div>
     </div>
-
     <div class="card" id="raffle-info">
-      <img id="r-img" alt="Фото" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 16px; cursor: pointer;" onclick="openImageModal(this.src)">
-      <h2 id="r-name"></h2>
-      <p id="r-stats" style="color: var(--muted); font-size: 14px; margin-bottom: 8px;"></p>
-      <div id="r-timer" class="hidden" style="color: #92400e; font-weight: 700; font-size: 15px; background: #fef3c7; padding: 8px; border-radius: 8px; text-align: center; margin-bottom: 16px;">⏳ <span id="timer-text"></span></div>
-      <div id="admin-publish-block" class="hidden"><button class="btn-success" style="margin-bottom: 16px;" onclick="publishRaffle()">✅ Опубликовать</button></div>
+      <img id="r-img" alt="Фото приза" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; cursor: pointer;" onclick="openImageModal(this.src)">
+      <h2 id="r-name" style="font-size: 22px; font-weight: 800; margin-bottom: 6px;"></h2>
+      
+      <p id="r-prizes-info" style="font-size: 15px; font-weight: 700; color: #7c3aed; margin-bottom: 8px;"></p>
+      
+      <p id="r-stats" style="color: var(--muted); font-size: 14px; margin-bottom: 10px;"></p>
+      
+      <div id="r-req-block" style="background: #f0fdf4; border: 1px dashed #10b981; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; display: none;">
+        <strong>Реквизиты для оплаты:</strong> <span id="r-req-text" style="color: #047857; font-weight: bold;"></span>
+      </div>
+
+      <div id="r-timer" class="hidden" style="color: #92400e; font-weight: 700; font-size: 14px; margin-bottom: 12px; background: #fef3c7; padding: 8px; border-radius: 8px; text-align: center;">
+        ⏳ <span id="timer-text"></span>
+      </div>
+      <div id="admin-publish-block" class="hidden">
+        <button class="btn-success" onclick="publishRaffle()" style="width: 100%;">✅ Опубликовать</button>
+      </div>
     </div>
-    
     <div class="card">
-      <h2>🎟 Билеты</h2>
+      <h2 style="margin-bottom: 12px; font-size: 18px;">🎟 Билеты</h2>
       <div id="guest-form" class="hidden">
-        <input id="g-name" placeholder="Ваше имя">
-        <div class="row">
-          <input id="g-random" type="number" placeholder="Случайных N" style="flex: 1;">
-          <button class="btn-outline" style="flex: 1;" onclick="selectRandom()">Выбрать N</button>
+        <input id="g-name" placeholder="Ваше имя" autocomplete="off">
+        <input id="g-code" placeholder="Ваш код (если уже участвовали)" autocomplete="off" style="margin-bottom: 8px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <input id="g-random" type="number" inputmode="numeric" placeholder="Случайных N" style="flex: 1; margin-bottom: 0;">
+          <button class="btn-outline" style="flex: 1; font-size:13px;" onclick="selectRandomForGuest()">Выбрать N</button>
         </div>
       </div>
       <div id="admin-form" class="hidden">
-        <div class="row"><input id="a-name" placeholder="Имя участника"><button class="btn-primary" onclick="adminGiveTickets()">Выдать</button></div>
+        <input id="a-name" placeholder="Имя участника" autocomplete="off">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <input id="a-random" type="number" inputmode="numeric" placeholder="Случайных N" style="flex: 1; margin-bottom: 0;">
+          <button class="btn-outline" style="flex: 1; font-size:13px;" onclick="selectRandomForAdmin()">Выбрать N</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <button class="btn-success" style="flex: 1; font-size: 12px;" onclick="adminBook('pending')">⏳ Ожидает</button>
+          <button class="btn-primary" style="flex: 1; font-size: 12px;" onclick="adminBook('confirmed')">✅ Оплачено</button>
+        </div>
       </div>
       <div class="tickets-grid" id="tickets-container"></div>
-      <div id="checkout" class="booking-summary hidden">
-        <p>Выбрано: <strong id="c-count">0</strong> шт.</p>
-        <p>К оплате: <strong id="c-sum">0</strong> ₽</p>
-        <p style="font-size: 13px; color: var(--muted); margin-top: 8px;">Реквизиты: <span id="c-req-text"></span></p>
-        <button class="btn-success" style="margin-top: 12px;" onclick="bookTickets()" id="btn-book">Забронировать</button>
+      <div id="checkout" class="hidden" style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: 10px; padding: 12px; margin-top: 12px;">
+        <p style="font-size: 14px;">Выбрано: <strong id="c-count" style="color: var(--accent);">0</strong> шт.</p>
+        <p style="font-size: 14px; margin-bottom: 6px;">К оплате: <strong id="c-sum" style="color: var(--accent);">0</strong> ₽</p>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">Реквизиты: <span id="c-req-text" style="font-weight: 600; color: var(--text);"></span></p>
+        <button class="btn-success" onclick="bookTickets()" id="btn-book">Забронировать</button>
       </div>
-      <table id="admin-table" class="hidden">
-        <thead><tr><th>Имя (Код)</th><th>Билеты</th><th>Статус</th><th>Действия</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <div id="participants-block" style="margin-top: 20px;">
+        <h3 style="font-size: 16px; margin-bottom: 10px;">👥 Участники</h3>
+        <div id="participants-list"></div>
+      </div>
     </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('main')">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Главная
+    </div>
+    <div class="nav-item" id="nav-history" onclick="switchView('history')">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      Брони
+      <span id="nav-badge" class="nav-badge hidden">0</span>
+    </div>
+  </div>
+  <div id="image-modal" onclick="this.style.display='none'" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; cursor: pointer;">
+    <img id="modal-img" src="" style="max-width: 95%; max-height: 95%; border-radius: 12px;">
   </div>
 </div>
 
 <script>
 const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { lockAcquireTimeout: 5000 }
-});
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let raffles = [], currentRaffle = null, selectedTickets = new Set(), isAdmin = false;
 let uploadedImageBase64 = "";
 let isSubmitting = false;
-let timerInterval = null;
-let mainTimerInterval = null;
+let timerInterval = null, mainTimerInterval = null;
+
+let myCodes = JSON.parse(localStorage.getItem('myCodes')) || {}; 
+let readStatuses = JSON.parse(localStorage.getItem('readStatuses')) || {};
+
+const ICONS = ['⭐', '✅', '💎', '🔥', '🍀', '🎯', '🎲', '👑', '🚀', '💡'];
+
+function getIconForCode(code) {
+  for (let name in myCodes) {
+    if (myCodes[name].code === code) return myCodes[name].icon;
+  }
+  return null;
+}
+
+function getNextIcon() {
+  const usedIcons = Object.values(myCodes).map(c => c.icon);
+  for (let icon of ICONS) {
+    if (!usedIcons.includes(icon)) return icon;
+  }
+  return '⭐';
+}
+
+function updateCalc() {
+  const tickets = parseInt(document.getElementById('c-tickets').value) || 0;
+  const price = parseInt(document.getElementById('c-price').value) || 0;
+  const total = tickets * price;
+  
+  const totalEl = document.getElementById('calc-total');
+  if (totalEl) {
+    totalEl.innerText = total.toLocaleString('ru-RU') + ' ₽';
+  }
+}
+
+function showToast(message, type = 'default') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerText = message;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
 
 window.onload = () => {
-  isAdmin = localStorage.getItem('isAdmin') === 'true';
-  if (isAdmin) {
-    document.getElementById('admin-panel').classList.remove('hidden');
-    document.getElementById('loginBtn').classList.add('hidden');
-  }
+  checkAdminStatus();
   const savedReq = localStorage.getItem('myPaymentDetails');
   if (savedReq) document.getElementById('c-req').value = savedReq;
+  
+  const cTickets = document.getElementById('c-tickets');
+  const cPrice = document.getElementById('c-price');
+  if (cTickets && cPrice) {
+    cTickets.addEventListener('input', updateCalc);
+    cPrice.addEventListener('input', updateCalc);
+  }
   
   loadRaffles();
   setInterval(checkExpiredBookings, 60000);
   mainTimerInterval = setInterval(updateMainTimers, 1000);
+  
+  const lastView = localStorage.getItem('lastView');
+  if (lastView && lastView !== 'main') switchView(lastView);
 };
+
+function updateNavBadge() {
+  let unreadCount = 0;
+  
+  raffles.forEach(r => {
+    if (!r.soldTickets) return;
+    
+    const grouped = {};
+    r.soldTickets.forEach(t => {
+      if (t.status === 'rejected') return;
+      if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { statuses: new Set() };
+      grouped[t.bookingCode].statuses.add(t.status);
+    });
+    
+    for (let code in grouped) {
+      if (Object.values(myCodes).some(c => c.code === code)) {
+        let currentStatus = 'confirmed';
+        if (grouped[code].statuses.has('pending')) currentStatus = 'pending';
+        else if (grouped[code].statuses.has('waiting_admin')) currentStatus = 'waiting_admin';
+        
+        const readKey = `${r.id}_${code}`;
+        
+        if (readStatuses[readKey] !== currentStatus) {
+          unreadCount++;
+        }
+      }
+    }
+  });
+
+  const badge = document.getElementById('nav-badge');
+  if (unreadCount > 0) {
+    badge.innerText = unreadCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function markNotificationsAsRead() {
+  raffles.forEach(r => {
+    if (!r.soldTickets) return;
+    
+    const grouped = {};
+    r.soldTickets.forEach(t => {
+      if (t.status === 'rejected') return;
+      if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { statuses: new Set() };
+      grouped[t.bookingCode].statuses.add(t.status);
+    });
+    
+    for (let code in grouped) {
+      if (Object.values(myCodes).some(c => c.code === code)) {
+        let currentStatus = 'confirmed';
+        if (grouped[code].statuses.has('pending')) currentStatus = 'pending';
+        else if (grouped[code].statuses.has('waiting_admin')) currentStatus = 'waiting_admin';
+        
+        const readKey = `${r.id}_${code}`;
+        readStatuses[readKey] = currentStatus;
+      }
+    }
+  });
+  
+  localStorage.setItem('readStatuses', JSON.stringify(readStatuses));
+  updateNavBadge();
+}
+
+function checkAdminStatus() {
+  isAdmin = localStorage.getItem('isAdmin') === 'true';
+  if (isAdmin) {
+    document.getElementById('admin-panel').classList.remove('hidden');
+    document.getElementById('adminLoginBtn').classList.add('hidden');
+  } else {
+    document.getElementById('admin-panel').classList.add('hidden');
+    document.getElementById('adminLoginBtn').classList.remove('hidden');
+  }
+  updateNavBadge();
+}
+
+function toggleAdminRole() {
+  if (isAdmin) {
+    if(confirm('Выйти из режима администратора?')) {
+      localStorage.removeItem('isAdmin');
+      checkAdminStatus();
+      switchView('main');
+      showToast('Вы вышли из режима админа');
+    }
+  } else {
+    showAdminLogin();
+  }
+}
+
+async function showAdminLogin() {
+  const pwd = prompt('Введите пароль администратора:');
+  if (pwd === null) return;
+
+  try {
+    const { data, error } = await supabaseClient.rpc('check_admin_password', {
+      input_password: pwd
+    });
+
+    if (error) throw error;
+
+    if (data === true) {
+      isAdmin = true;
+      localStorage.setItem('isAdmin', 'true');
+      checkAdminStatus();
+      loadRaffles();
+      showToast('Вы вошли как администратор', 'success');
+    } else {
+      showToast('Неверный пароль', 'error');
+    }
+  } catch (err) {
+    showToast('Ошибка проверки: ' + err.message, 'error');
+  }
+}
+
+function shareLink() {
+  const url = window.location.href.split('?')[0];
+  if (navigator.share) {
+    navigator.share({ title: 'Твой Шанс', text: 'Испытай удачу и забери приз!', url: url }).catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Ссылка скопирована!', 'success'));
+  } else {
+    prompt('Скопируйте ссылку:', url);
+  }
+}
 
 function openImageModal(src) {
   if(!src || src.includes('placeholder')) return;
   document.getElementById('modal-img').src = src;
   document.getElementById('image-modal').style.display = 'flex';
-}
-
-function updateMainTimers() {
-  const now = Date.now();
-  document.querySelectorAll('.game-timer-main').forEach(el => {
-    const end = parseInt(el.getAttribute('data-end'));
-    if(!end) return;
-    const diff = end - now;
-    if (diff <= 0) { el.innerText = 'Время вышло!'; el.style.color = 'var(--danger)'; }
-    else {
-      const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-      el.innerText = `⏳ ${d}д ${h}ч ${m}м ${s}с`;
-    }
-  });
 }
 
 function shuffle(array) {
@@ -253,79 +572,29 @@ function shuffle(array) {
 }
 
 function switchView(view) {
-  document.getElementById('view-main').classList.add('hidden');
-  document.getElementById('view-create').classList.add('hidden');
-  document.getElementById('view-raffle').classList.add('hidden');
-  document.getElementById('view-history').classList.add('hidden');
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
   document.getElementById('view-' + view).classList.remove('hidden');
-  
   localStorage.setItem('lastView', view);
   
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if(view === 'main') document.querySelectorAll('.nav-item')[0].classList.add('active');
+  if(view === 'history') {
+    document.querySelectorAll('.nav-item')[1].classList.add('active');
+    markNotificationsAsRead(); 
+  }
+
   if (view === 'history') renderMyBookings();
-  if (view === 'main') loadRaffles();
+  if (view === 'main') { loadRaffles(); updateNavBadge(); }
 }
 
 function switchTab(tab) {
-  document.getElementById('tab-active').classList.remove('active');
-  document.getElementById('tab-finished').classList.remove('active');
-  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  if (tab === 'active') document.getElementById('tab-active-btn').classList.add('active');
+  else document.getElementById('tab-finished-btn').classList.add('active');
   
   document.getElementById('grid-active').classList.toggle('hidden', tab !== 'active');
   document.getElementById('grid-finished').classList.toggle('hidden', tab !== 'finished');
   loadRaffles();
-}
-
-function showAdminLogin() {
-  const pwd = prompt('Введите пароль:');
-  if (pwd === 'RjhJkM01200111') {
-    isAdmin = true;
-    localStorage.setItem('isAdmin', 'true');
-    document.getElementById('admin-panel').classList.remove('hidden');
-    document.getElementById('loginBtn').classList.add('hidden');
-    loadRaffles();
-  } else { alert('Неверный пароль'); }
-}
-
-function adminLogout() {
-  isAdmin = false;
-  localStorage.removeItem('isAdmin');
-  document.getElementById('admin-panel').classList.add('hidden');
-  document.getElementById('loginBtn').classList.remove('hidden');
-  switchView('main');
-}
-
-function copyMainLink() {
-  const url = window.location.href.split('?')[0];
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => alert('Ссылка скопирована!')).catch(() => alert('Ошибка копирования'));
-  } else {
-    prompt('Скопируйте ссылку вручную:', url);
-  }
-}
-
-function handleImageUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      let width = img.width, height = img.height;
-      const MAX_SIZE = 500;
-      if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-      else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-      canvas.width = width; canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
-      const preview = document.getElementById('preview-img');
-      preview.src = uploadedImageBase64;
-      preview.style.display = 'block';
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
 }
 
 async function loadRaffles() {
@@ -338,53 +607,87 @@ async function loadRaffles() {
        return { ...d, id: item.id };
     }).filter(r => r.prizeName);
 
-    renderGrid('active', raffles.filter(r => r.isPublished && !r.isDrawn));
-    renderGrid('finished', raffles.filter(r => r.isPublished && r.isDrawn));
+    const activeList = raffles.filter(r => r.isPublished && !r.isDrawn);
+    const finishedList = raffles.filter(r => r.isPublished && r.isDrawn);
+
+    document.getElementById('tab-active-btn').innerText = `Активные (${activeList.length})`;
+
+    renderGrid('active', activeList);
+    renderGrid('finished', finishedList);
     
     if (isAdmin) updateAdminCounters();
+    updateNavBadge();
   } catch (err) {
     console.error('Ошибка загрузки:', err.message);
+    document.getElementById('grid-active').innerHTML = '<p style="color:var(--danger); text-align:center; margin-top:20px; font-weight:bold;">Ошибка загрузки. Проверьте интернет.</p>';
   }
 }
 
 function renderGrid(tab, list) {
   const container = document.getElementById('grid-' + tab);
   container.innerHTML = '';
+  
   if (list.length === 0) {
-    container.innerHTML = '<p style="color:var(--muted); text-align:center; grid-column: 1/-1;">Пока ничего нет</p>';
+    if (tab === 'active') {
+      container.innerHTML = '<div style="text-align:center; margin-top:30px; color:var(--muted);"><p style="font-weight:600;">Пока нет активных розыгрышей.</p><p style="font-size:13px;">Загляните позже!</p></div>';
+    } else {
+      container.innerHTML = '<div style="text-align:center; margin-top:30px; color:var(--muted);"><p style="font-weight:600;">У вас пока нет завершенных розыгрышей.</p></div>';
+    }
     return;
   }
-  list.forEach(r => {
+  
+  list.forEach((r, index) => {
     const el = document.createElement('div');
-    el.className = 'game-card';
+    el.className = 'game-card fade-in';
+    el.style.animationDelay = `${index * 0.05}s`;
     el.onclick = () => openRaffle(r.id);
-    const img = r.imageUrl || 'https://via.placeholder.com/150?text=Нет+фото';
-    const soldCount = r.soldTickets ? r.soldTickets.length : 0;
+    const img = r.imageUrl || 'https://via.placeholder.com/200x200?text=Нет+фото';
+    const soldCount = r.soldTickets ? r.soldTickets.filter(t=>t.status!=='rejected').length : 0;
+    const freeCount = r.totalTickets - soldCount;
     
-    let deleteBtn = isAdmin ? `<button class="btn-danger btn-sm" style="position:absolute; top:8px; right:8px; padding:4px 8px; z-index:10;" onclick="event.stopPropagation(); deleteRaffle('${r.id}')">🗑</button>` : '';
+    let deleteBtn = isAdmin ? `<button class="btn-danger btn-sm" style="position:absolute; top:8px; right:8px; padding:4px 8px; z-index:10; width:auto; font-size:12px; border-radius:6px;" onclick="event.stopPropagation(); deleteRaffle('${r.id}')">✕</button>` : '';
     let timerHtml = '';
     
     if (tab === 'active' && r.endTime) {
-      timerHtml = `<div class="game-timer-main" data-end="${r.endTime}"></div>`;
+      timerHtml = `<div class="game-timer-main" data-end="${r.endTime}" style="color:#b45309; font-weight:700; font-size:12px; margin-top:6px;"></div>`;
     } else if (tab === 'finished') {
-      timerHtml = `<div class="game-timer-main" style="color:var(--muted);">Розыгрыш завершен</div>`;
+      timerHtml = `<div style="color:var(--muted); font-size:12px; margin-top:6px;">Завершен</div>`;
     }
     
     el.innerHTML = `
       ${deleteBtn}
-      <img src="${img}" onerror="this.src='https://via.placeholder.com/150?text=Ошибка'">
+      <img src="${img}" onerror="this.src='https://via.placeholder.com/200x200?text=Ошибка'">
       <div class="game-info">
         <div>
           <div class="game-title">${r.prizeName}</div>
-          <div class="game-price">${r.ticketPrice} ₽ / билет</div>
+          <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+            <div class="badge ${freeCount > 0 ? 'badge-green' : 'badge-yellow'}">${freeCount > 0 ? 'Свободно: ' + freeCount : 'Мест нет'}</div>
+            <div class="badge badge-prizes">🏆 Победителей: ${r.prizesCount || 1}</div>
+          </div>
         </div>
-        <div class="game-stats">Свободно: ${r.totalTickets - soldCount}</div>
-        ${timerHtml}
+        <div style="margin-top:8px;">
+          <div class="game-price">${r.ticketPrice} ₽ / шт.</div>
+          ${timerHtml}
+        </div>
       </div>
     `;
     container.appendChild(el);
   });
   updateMainTimers();
+}
+
+function updateMainTimers() {
+  const now = Date.now();
+  document.querySelectorAll('.game-timer-main').forEach(el => {
+    const end = parseInt(el.getAttribute('data-end'));
+    if(!end) return;
+    const diff = end - now;
+    if (diff <= 0) { el.innerText = 'Время вышло!'; el.style.color = 'var(--danger)'; }
+    else {
+      const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+      el.innerText = `⏳ ${d>0?d+'д ':''}${h}ч ${m}м ${s}с`;
+    }
+  });
 }
 
 async function openRaffle(id) {
@@ -398,23 +701,39 @@ async function openRaffle(id) {
   document.getElementById('r-name').innerText = currentRaffle.prizeName;
   document.getElementById('r-img').src = currentRaffle.imageUrl || 'https://via.placeholder.com/300x200?text=Нет+фото';
   
-  const soldCount = currentRaffle.soldTickets ? currentRaffle.soldTickets.length : 0;
+  const prizesCount = currentRaffle.prizesCount || 1;
+  document.getElementById('r-prizes-info').innerText = `🏆 Разыгрывается призов (победителей): ${prizesCount}`;
+
+  const soldCount = currentRaffle.soldTickets ? currentRaffle.soldTickets.filter(t=>t.status!=='rejected').length : 0;
   document.getElementById('r-stats').innerText = `Цена: ${currentRaffle.ticketPrice} ₽ | Продано: ${soldCount} / ${currentRaffle.totalTickets}`;
+  
+  const reqBlock = document.getElementById('r-req-block');
+  const reqText = document.getElementById('r-req-text');
+  if (isAdmin && !currentRaffle.isPublished) {
+    reqBlock.style.display = 'block';
+    reqText.innerText = currentRaffle.paymentDetails || 'Не указаны!';
+  } else {
+    reqBlock.style.display = 'none';
+  }
   
   const isPublished = currentRaffle.isPublished;
   document.getElementById('admin-publish-block').classList.toggle('hidden', isPublished || !isAdmin);
   document.getElementById('guest-form').classList.toggle('hidden', !isPublished || isAdmin || currentRaffle.isDrawn);
   document.getElementById('admin-form').classList.toggle('hidden', !isAdmin);
-  document.getElementById('admin-table').classList.toggle('hidden', !isAdmin);
+  document.getElementById('participants-block').classList.toggle('hidden', !isPublished);
   
-  if (currentRaffle.endTime && !currentRaffle.isDrawn && isPublished) {
-    document.getElementById('r-timer').classList.remove('hidden');
-    updateTimer();
-  } else if (!isPublished) {
-    document.getElementById('r-timer').classList.remove('hidden');
-    document.getElementById('timer-text').innerText = 'Время начнется после публикации';
+  const timerEl = document.getElementById('r-timer');
+  if (currentRaffle.endTime && !currentRaffle.isDrawn) {
+    timerEl.classList.remove('hidden');
+    if (isPublished) {
+       updateTimer();
+    } else {
+       const h = Math.floor(currentRaffle.endTime / 3600000);
+       const m = Math.floor((currentRaffle.endTime % 3600000) / 60000);
+       document.getElementById('timer-text').innerText = `${h}ч ${m}м (запустится после публикации)`;
+    }
   } else {
-    document.getElementById('r-timer').classList.add('hidden');
+    timerEl.classList.add('hidden');
   }
   
   const drawBlock = document.getElementById('draw-block');
@@ -422,33 +741,18 @@ async function openRaffle(id) {
     drawBlock.classList.remove('hidden');
     document.getElementById('draw-btn').classList.add('hidden');
     document.getElementById('draw-area').classList.add('hidden');
-    const wList = document.getElementById('winners-list');
-    wList.innerHTML = '';
-    if (currentRaffle.winnersHistory) {
-      currentRaffle.winnersHistory.forEach(w => {
-        wList.innerHTML += `<div class="winner-card">
-          <div class="winner-cup">🏆</div>
-          <div class="winner-text">ПОЗДРАВЛЯЕМ!</div>
-          <div class="winner-name">${w.owner}</div>
-          <div class="winner-prize-box">
-            <div class="winner-prize-title">Выигрышный приз:</div>
-            <div class="winner-prize-name">${currentRaffle.prizeName}</div>
-          </div>
-          <div class="winner-ticket">Билет № <b>${w.num}</b></div>
-        </div>`;
-      });
-    }
-    document.getElementById('raffle-info').before(drawBlock);
-  } else {
+    renderWinners(currentRaffle.winnersHistory);
+  } else if (isAdmin) {
     drawBlock.classList.remove('hidden');
-    document.getElementById('draw-btn').classList.toggle('hidden', !isAdmin);
+    document.getElementById('draw-btn').classList.remove('hidden');
     document.getElementById('draw-area').classList.add('hidden');
     document.getElementById('winners-list').innerHTML = '';
-    document.getElementById('raffle-info').after(drawBlock); 
+  } else {
+    drawBlock.classList.add('hidden');
   }
 
   renderTickets();
-  if(isAdmin) renderAdminTable();
+  renderParticipants();
   switchView('raffle');
 }
 
@@ -456,7 +760,9 @@ function renderTickets() {
   const grid = document.getElementById('tickets-container');
   grid.innerHTML = '';
   const ticketMap = new Map();
-  if (currentRaffle.soldTickets) currentRaffle.soldTickets.forEach(t => ticketMap.set(t.num, t));
+  if (currentRaffle.soldTickets) currentRaffle.soldTickets.forEach(t => {
+    if(t.status !== 'rejected') ticketMap.set(t.num, t);
+  });
   
   for (let i = 1; i <= currentRaffle.totalTickets; i++) {
     const el = document.createElement('div');
@@ -465,9 +771,21 @@ function renderTickets() {
     const ticket = ticketMap.get(i);
     
     if (ticket) {
-      if (ticket.status === 'confirmed') el.classList.add('ticket-taken');
-      else if (ticket.status === 'waiting_admin') el.classList.add('ticket-waiting');
-      else if (ticket.status === 'pending') el.classList.add('ticket-pending');
+      const isMyTicket = Object.values(myCodes).some(c => c.code === ticket.bookingCode);
+
+      if (ticket.status === 'confirmed') {
+        el.classList.add('ticket-taken');
+        if (isMyTicket) {
+          const icon = getIconForCode(ticket.bookingCode);
+          if (icon) el.innerHTML = `${i}<span class="ticket-icon">${icon}</span>`;
+        }
+      }
+      else if (ticket.status === 'waiting_admin') {
+        el.classList.add('ticket-waiting'); 
+      }
+      else if (ticket.status === 'pending') {
+        el.classList.add('ticket-pending'); 
+      }
     } else if (selectedTickets.has(i)) {
       el.classList.add('ticket-selected'); 
       el.onclick = () => toggleTicket(i);
@@ -481,21 +799,34 @@ function renderTickets() {
 }
 
 function toggleTicket(num) {
-  selectedTickets.has(num) ? selectedTickets.delete(num) : selectedTickets.add(num);
+  if (selectedTickets.has(num)) selectedTickets.delete(num);
+  else selectedTickets.add(num);
   renderTickets();
 }
 
-function selectRandom() {
+function selectRandomForGuest() {
   const count = parseInt(document.getElementById('g-random').value);
-  if (!count || count < 1) return alert('Введите количество');
-  
+  if (!count || count < 1) return showToast('Введите количество', 'error');
   const free = [];
   for (let i = 1; i <= currentRaffle.totalTickets; i++) {
-    const isTaken = currentRaffle.soldTickets.find(t => t.num === i);
+    const isTaken = (currentRaffle.soldTickets || []).find(t => t.num === i && t.status !== 'rejected');
     if (!isTaken) free.push(i);
   }
-  
-  if (free.length < count) return alert(`Свободно только ${free.length} билетов`);
+  if (free.length < count) return showToast(`Свободно только ${free.length} билетов`, 'error');
+  selectedTickets.clear();
+  shuffle(free).slice(0, count).forEach(n => selectedTickets.add(n));
+  renderTickets();
+}
+
+function selectRandomForAdmin() {
+  const count = parseInt(document.getElementById('a-random').value);
+  if (!count || count < 1) return showToast('Введите количество', 'error');
+  const free = [];
+  for (let i = 1; i <= currentRaffle.totalTickets; i++) {
+    const isTaken = (currentRaffle.soldTickets || []).find(t => t.num === i && t.status !== 'rejected');
+    if (!isTaken) free.push(i);
+  }
+  if (free.length < count) return showToast(`Свободно только ${free.length} билетов`, 'error');
   selectedTickets.clear();
   shuffle(free).slice(0, count).forEach(n => selectedTickets.add(n));
   renderTickets();
@@ -503,7 +834,7 @@ function selectRandom() {
 
 function updateCheckout() {
   const box = document.getElementById('checkout');
-  if (selectedTickets.size > 0) {
+  if (selectedTickets.size > 0 && !isAdmin) {
     box.classList.remove('hidden');
     document.getElementById('c-count').innerText = selectedTickets.size;
     document.getElementById('c-sum').innerText = selectedTickets.size * currentRaffle.ticketPrice;
@@ -513,6 +844,337 @@ function updateCheckout() {
   }
 }
 
+function generateCode(name) {
+  const letter = name.trim()[0].toUpperCase();
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `${letter}-${random}`;
+}
+
+async function bookTickets() {
+  if (isSubmitting) return;
+  const name = document.getElementById('g-name').value.trim();
+  let inputCode = document.getElementById('g-code').value.trim();
+  
+  if (!name) return showToast('Введите ваше имя!', 'error');
+  if (selectedTickets.size === 0) return showToast('Выберите билеты!', 'error');
+
+  const existing = (currentRaffle.soldTickets || []).find(t => t.owner.toLowerCase() === name.toLowerCase() && t.status !== 'rejected');
+  
+  if (existing) {
+    if (!inputCode) return showToast('Имя занято! Введите ваш код или добавьте инициалы', 'error');
+    if (!myCodes[name] || myCodes[name].code !== inputCode) {
+       return showToast('Неверный код для этого имени!', 'error');
+    }
+  } else {
+    if (!inputCode) {
+      inputCode = generateCode(name);
+      const newIcon = getNextIcon();
+      myCodes[name] = { code: inputCode, icon: newIcon };
+      localStorage.setItem('myCodes', JSON.stringify(myCodes));
+    }
+  }
+
+  const hasPending = (currentRaffle.soldTickets || []).some(t => t.bookingCode === inputCode && (t.status === 'pending' || t.status === 'waiting_admin'));
+  if (hasPending) return showToast('У вас есть незавершенная бронь! Оплатите или отмените её в "Бронях".', 'error');
+
+  isSubmitting = true;
+  const btn = document.getElementById('btn-book');
+  btn.innerHTML = 'Бронирование...';
+  btn.disabled = true;
+
+  try {
+    const { data: freshData } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
+    let latestRaffle = { ...freshData.data, id: freshData.id };
+    if (!latestRaffle.soldTickets) latestRaffle.soldTickets = [];
+
+    for (let num of selectedTickets) {
+      if (latestRaffle.soldTickets.some(t => t.num === num && t.status !== 'rejected')) {
+        showToast(`Билет №${num} только что купили! Выберите другой.`, 'error');
+        btn.innerHTML = 'Забронировать'; btn.disabled = false; isSubmitting = false;
+        return;
+      }
+    }
+
+    const expireAt = Date.now() + 5 * 60 * 1000;
+    const inserts = Array.from(selectedTickets).map(n => ({ num: n, owner: name, status: 'pending', expireAt, bookingCode: inputCode }));
+    
+    latestRaffle.soldTickets.push(...inserts);
+    await supabaseClient.from('raffles').update({ data: latestRaffle }).eq('id', latestRaffle.id);
+    
+    currentRaffle.soldTickets = latestRaffle.soldTickets;
+    selectedTickets.clear();
+    renderTickets();
+    renderParticipants();
+    updateNavBadge();
+    
+    showToast(`Успешно! Ваш код: ${inputCode}. У вас 5 минут.`, 'success');
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, 'error');
+  } finally {
+    btn.innerHTML = 'Забронировать'; btn.disabled = false; isSubmitting = false;
+  }
+}
+
+async function adminBook(status) {
+  const name = document.getElementById('a-name').value.trim();
+  if (!name) return showToast('Введите имя участника!', 'error');
+  if (selectedTickets.size === 0) return showToast('Выберите билеты!', 'error');
+
+  const existing = (currentRaffle.soldTickets || []).find(t => t.owner.toLowerCase() === name.toLowerCase() && t.status !== 'rejected');
+  let codeToUse = existing ? existing.bookingCode : generateCode(name);
+
+  isSubmitting = true;
+  try {
+    const { data: freshData } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
+    let latestRaffle = { ...freshData.data, id: freshData.id };
+    if (!latestRaffle.soldTickets) latestRaffle.soldTickets = [];
+
+    const inserts = Array.from(selectedTickets).map(n => ({ num: n, owner: name, status: status, bookingCode: codeToUse }));
+    
+    latestRaffle.soldTickets.push(...inserts);
+    await supabaseClient.from('raffles').update({ data: latestRaffle }).eq('id', latestRaffle.id);
+    
+    currentRaffle.soldTickets = latestRaffle.soldTickets;
+    selectedTickets.clear();
+    document.getElementById('a-name').value = '';
+    document.getElementById('a-random').value = '';
+    renderTickets();
+    renderParticipants();
+    
+    loadRaffles(); 
+    if (status === 'pending') {
+      toggleAdminSection('pending');
+      showToast(`Бронь для ${name} создана. Ждет оплаты!`, 'success');
+    } else {
+      showToast(`Билеты для ${name} оплачены!`, 'success');
+    }
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, 'error');
+  } finally {
+    isSubmitting = false;
+  }
+}
+
+function renderParticipants() {
+  const list = document.getElementById('participants-list');
+  list.innerHTML = '';
+  if (!currentRaffle.soldTickets || currentRaffle.soldTickets.length === 0) {
+    list.innerHTML = '<p style="color:var(--muted); font-size:14px;">Пока нет участников</p>';
+    return;
+  }
+
+  const grouped = {};
+  currentRaffle.soldTickets.forEach(t => {
+    if (t.status === 'rejected') return;
+    if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { owner: t.owner, tickets: [], status: t.status, code: t.bookingCode };
+    grouped[t.bookingCode].tickets.push(t.num);
+  });
+
+  const uniqueCodes = [];
+ for (let i = currentRaffle.soldTickets.length - 1; i >= 0; i--) {
+    const t = currentRaffle.soldTickets[i];
+    if (t.status !== 'rejected' && !uniqueCodes.includes(t.bookingCode)) {
+      uniqueCodes.push(t.bookingCode);
+    }
+  }
+
+  for (let code of uniqueCodes) {
+    const d = grouped[code];
+    let statusHtml = '';
+    if (d.status === 'confirmed') statusHtml = '<span style="color:var(--success);">✅ Принято</span>';
+    else if (d.status === 'waiting_admin') statusHtml = '<span style="color:var(--accent);">📩 На проверке</span>';
+    else statusHtml = '<span style="color:var(--warning);">⏳ Ожидает</span>';
+
+    const isMyCode = Object.values(myCodes).some(c => c.code === code);
+    const icon = getIconForCode(code);
+    const iconDisplay = (isMyCode && icon) ? ` <span style="color:var(--accent);">${icon}</span>` : '';
+    
+    const codeDisplay = (isMyCode || isAdmin) ? `<br><small style="color:var(--accent); cursor:pointer;" onclick="copyCode('${code}')">Код: ${code} 📋</small>` : '';
+
+    let deleteBtn = isAdmin ? `<button class="delete-btn-icon" onclick="removeParticipant('${code}')" title="Удалить участника">🗑</button>` : '';
+
+    list.innerHTML += `
+      <div class="participant-row">
+        <div style="flex:1;">
+          <div style="font-weight:700; display:flex; align-items:center;">
+            ${d.owner}${iconDisplay} ${deleteBtn}
+          </div>
+          <div style="color:var(--muted); font-size:13px;">Билеты: ${d.tickets.join(', ')} ${codeDisplay}</div>
+        </div>
+        <div style="font-size:13px; font-weight:700; text-align:right; margin-left:8px;">${statusHtml}</div>
+      </div>
+    `;
+  }
+}
+
+async function removeParticipant(code) {
+  if (!confirm('Удалить участника и освободить его билеты?')) return;
+  const updatedTickets = currentRaffle.soldTickets.filter(t => t.bookingCode !== code);
+  currentRaffle.soldTickets = updatedTickets;
+  
+  try {
+    await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+    showToast('Участник удален', 'success');
+    renderTickets();
+    renderParticipants();
+    updateAdminCounters();
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, 'error');
+  }
+}
+
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => showToast('Код скопирован!', 'success'));
+}
+
+function renderMyBookings() {
+  const activeList = document.getElementById('my-history-active');
+  activeList.innerHTML = '';
+
+  const allMyCodes = Object.values(myCodes).map(c => c.code);
+  if (allMyCodes.length === 0) { 
+    activeList.innerHTML = '<p style="color:var(--muted); text-align:center;">У вас пока нет броней.</p>'; 
+    return; 
+  }
+
+  let allBookings = [];
+  const now = Date.now();
+
+  raffles.forEach(r => {
+    if (!r.soldTickets) return;
+    allMyCodes.forEach(code => {
+      const myTickets = r.soldTickets.filter(t => t.bookingCode === code && t.status !== 'rejected');
+      if (myTickets.length > 0) {
+        const ownerName = myTickets[0].owner;
+        const pending = myTickets.filter(t => t.status === 'pending');
+        const waiting = myTickets.filter(t => t.status === 'waiting_admin');
+        const confirmed = myTickets.filter(t => t.status === 'confirmed');
+        
+        let sortTime = 0;
+        if (pending.length > 0) sortTime = Math.min(...pending.map(t => t.expireAt || 0));
+        else if (waiting.length > 0) sortTime = now - 100000;
+        else if (confirmed.length > 0) sortTime = now - 200000;
+
+        let html = `<div class="card fade-in" style="border-left: 5px solid ${confirmed.length ? 'var(--success)' : (waiting.length ? 'var(--accent)' : 'var(--warning)')};">`;
+        html += `<p style="font-size:16px; font-weight:800; margin-bottom:6px;">${r.prizeName}</p>`;
+        
+        const icon = getIconForCode(code);
+        html += `<p style="font-size:13px; color:var(--muted); margin-bottom:8px;">Игрок: ${ownerName} ${icon?icon:''} | Код: <span style="color:var(--accent); font-weight:700; cursor:pointer;" onclick="copyCode('${code}')">${code} 📋</span></p>`;
+
+        if (confirmed.length > 0) {
+          html += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; color:#166534;"><span style="font-weight:800;">✅ Оплата принята</span><br>Билеты: ${confirmed.map(t=>t.num).join(', ')}</div>`;
+        }
+        
+        if (waiting.length > 0) {
+          html += `<div style="background:#e0e7ff; padding:10px; border-radius:8px; margin-bottom:8px; color:#3730a3;"><span style="font-weight:800;">📩 Ожидает проверки админом</span><br>Билеты: ${waiting.map(t=>t.num).join(', ')}</div>`;
+        }
+
+        if (pending.length > 0) {
+          const minExpire = Math.min(...pending.map(t => t.expireAt || 0));
+          const left = Math.max(0, Math.floor((minExpire - now) / 1000));
+          const timeStr = `${Math.floor(left / 60)}:${(left % 60).toString().padStart(2, '0')}`;
+          
+          if (left > 0) {
+            html += `<div style="background:#fffbeb; padding:10px; border-radius:8px; margin-bottom:10px; border: 1px solid #fcd34d;">
+              <p><span style="color:#b45309; font-weight:800;">⏳ Ожидает оплаты (${timeStr})</span></p>
+              <p style="font-size:14px; margin:4px 0; color:#064e3b;">Билеты: ${pending.map(t=>t.num).join(', ')}</p>
+              <p style="font-size:14px; margin:4px 0; color:#064e3b;">К оплате: <b>${pending.length * r.ticketPrice} ₽</b></p>
+              <p style="font-size:13px; color:#b45309;">Реквизиты: ${r.paymentDetails}</p>
+              <button class="btn-success" style="margin-top:10px; padding:10px; font-size:14px;" onclick="payBooking('${r.id}', '${code}')">✅ Я оплатил</button>
+              <button class="btn-outline" style="margin-top:8px; padding:10px; font-size:14px; background:#fff;" onclick="cancelBooking('${r.id}', '${code}')">❌ Отменить</button>
+            </div>`;
+          } else {
+            html += `<div style="background:#fef2f2; padding:10px; border-radius:8px; margin-bottom:8px; color:#991b1b;"><span style="font-weight:800;">⌛ Время вышло</span><br>Бронь слетела.</div>`;
+          }
+        }
+        
+        html += `</div>`;
+        allBookings.push({ html, sortTime });
+      }
+    });
+  });
+
+  allBookings.sort((a, b) => b.sortTime - a.sortTime);
+
+  if (allBookings.length === 0) {
+    activeList.innerHTML = '<p style="color:var(--muted); text-align:center;">У вас нет активных броней.</p>';
+  } else {
+    activeList.innerHTML = allBookings.map(b => b.html).join('');
+  }
+  updateNavBadge();
+}
+
+async function payBooking(raffleId, code) {
+  const r = raffles.find(x => x.id === raffleId);
+  if (r) {
+    r.soldTickets.forEach(t => { if (t.bookingCode === code && t.status === 'pending') t.status = 'waiting_admin'; });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
+    showToast('Ожидайте подтверждения от организатора', 'success');
+    loadRaffles();
+    setTimeout(renderMyBookings, 300);
+  }
+}
+
+async function cancelBooking(raffleId, code) {
+  if (!confirm('Отменить бронь?')) return;
+  const r = raffles.find(x => x.id === raffleId);
+  if (r) {
+    r.soldTickets = r.soldTickets.filter(t => !(t.bookingCode === code && (t.status === 'pending' || t.status === 'waiting_admin')));
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
+    showToast('Бронь отменена');
+    loadRaffles();
+    setTimeout(renderMyBookings, 300);
+  }
+}
+
+async function checkExpiredBookings() {
+  let changed = false;
+  const now = Date.now();
+  for (let r of raffles) {
+    if (!r.soldTickets) continue;
+    const initialLen = r.soldTickets.length;
+    r.soldTickets = r.soldTickets.filter(t => t.status !== 'pending' || !t.expireAt || t.expireAt > now);
+    if (r.soldTickets.length !== initialLen) {
+      await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+      changed = true;
+    }
+  }
+  if (changed) { loadRaffles(); if(localStorage.getItem('lastView') === 'history') renderMyBookings(); }
+}
+
+function updateTimer() {
+  const el = document.getElementById('timer-text');
+  if (!currentRaffle.endTime) return;
+  timerInterval = setInterval(() => {
+    const diff = currentRaffle.endTime - Date.now();
+    if (diff <= 0) { el.innerText = 'Время вышло!'; clearInterval(timerInterval); return; }
+    const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+    el.innerText = `${d>0?d+'д ':''}${h}ч ${m}м ${s}с`;
+  }, 1000);
+}
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width, height = img.height;
+      if (width > height && width > 500) { height *= 500 / width; width = 500; }
+      else if (height > 500) { width *= 500 / height; height = 500; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      const preview = document.getElementById('preview-img');
+      preview.src = uploadedImageBase64; preview.style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 async function createRaffle() {
   if (isSubmitting) return; 
   const t = parseInt(document.getElementById('c-tickets').value);
@@ -520,24 +1182,20 @@ async function createRaffle() {
   const price = parseInt(document.getElementById('c-price').value);
   const name = document.getElementById('c-name').value.trim();
   const req = document.getElementById('c-req').value.trim();
+  const timeMs = parseInt(document.getElementById('c-time-select').value) || null;
   
-  if (!t || !name || !price) return alert('Заполните все поля!');
+  if (!t || !name || !price) return showToast('Заполните все поля!', 'error');
   if (req) localStorage.setItem('myPaymentDetails', req);
   
   isSubmitting = true;
   const btn = document.getElementById('btn-create-raffle');
-  btn.innerHTML = '<span class="loader"></span> Создание...';
-  btn.disabled = true;
+  btn.innerHTML = 'Создание...'; btn.disabled = true;
 
-  let endTime = null;
-  const timeSelect = document.getElementById('c-time-select').value;
-  if (timeSelect) endTime = parseInt(timeSelect);
-  
   const newId = Date.now().toString();
   const newRaffle = {
     id: newId, totalTickets: t, prizesCount: p, prizeName: name,
     imageUrl: uploadedImageBase64, ticketPrice: price, paymentDetails: req,
-    isPublished: false, isDrawn: false, endTime: endTime, soldTickets: [], winnersHistory: []
+    isPublished: false, isDrawn: false, endTime: timeMs, soldTickets: [], winnersHistory: []
   };
   
   try {
@@ -545,20 +1203,16 @@ async function createRaffle() {
     if (error) throw error;
     uploadedImageBase64 = "";
     document.getElementById('preview-img').style.display = 'none';
-    document.getElementById('c-name').value = '';
-    document.getElementById('c-req').value = '';
-    document.getElementById('c-tickets').value = '';
-    document.getElementById('c-price').value = '';
+    document.getElementById('c-name').value = ''; document.getElementById('c-req').value = '';
+    document.getElementById('c-tickets').value = ''; document.getElementById('c-price').value = '';
+    updateCalc();
     
-    alert('Розыгрыш создан! Ищите его в разделе "На проверке".');
-    loadRaffles();
-    switchView('main');
+    showToast('Розыгрыш создан! Ищите в "На проверке".', 'success');
+    loadRaffles(); switchView('main');
   } catch (err) {
-    alert('❌ Ошибка базы данных: ' + err.message);
+    showToast('Ошибка: ' + err.message, 'error');
   } finally {
-    btn.innerHTML = 'Создать и на проверку';
-    btn.disabled = false;
-    isSubmitting = false;
+    btn.innerHTML = 'Создать и на проверку'; btn.disabled = false; isSubmitting = false;
   }
 }
 
@@ -567,248 +1221,97 @@ async function publishRaffle() {
     currentRaffle.endTime = Date.now() + currentRaffle.endTime;
   }
   currentRaffle.isPublished = true;
+  
+  const rIndex = raffles.findIndex(r => r.id === currentRaffle.id);
+  if (rIndex !== -1) {
+    raffles[rIndex].isPublished = true;
+    raffles[rIndex].endTime = currentRaffle.endTime;
+  }
+  
   await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
-  alert('✅ Опубликовано!');
-  loadRaffles();
+  showToast('Розыгрыш опубликован!', 'success');
+  
+  loadRaffles(); 
   switchView('main');
-}
-
-async function bookTickets() {
-  const name = document.getElementById('g-name').value.trim();
-  if (!name) return alert('Введите ваше имя!');
-  if (selectedTickets.size === 0) return alert('Выберите билеты!');
-  
-  const btn = document.getElementById('btn-book');
-  btn.innerHTML = '<span class="loader"></span> Бронь...';
-  btn.disabled = true;
-
-  try {
-    const { data: freshData } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
-    const latestRaffle = { ...freshData.data, id: freshData.id };
-    
-    for (let num of selectedTickets) {
-      if (latestRaffle.soldTickets.some(t => t.num === num)) {
-        alert(`Билет №${num} только что купили! Обновите страницу.`);
-        btn.innerHTML = 'Забронировать'; btn.disabled = false; return;
-      }
-    }
-
-    let savedCodes = JSON.parse(localStorage.getItem('myCodesByNames')) || {};
-    let myCode = savedCodes[name];
-
-    if (!myCode) {
-      const letter = name[0].toUpperCase();
-      myCode = letter + "-" + Math.floor(1000 + Math.random() * 9000);
-      savedCodes[name] = myCode;
-      localStorage.setItem('myCodesByNames', JSON.stringify(savedCodes));
-    }
-    
-    const expireAt = Date.now() + 5 * 60 * 1000;
-    const inserts = Array.from(selectedTickets).map(n => ({ num: n, owner: name, status: 'pending', expireAt, bookingCode: myCode }));
-    
-    latestRaffle.soldTickets.push(...inserts);
-    await supabaseClient.from('raffles').update({ data: latestRaffle }).eq('id', latestRaffle.id);
-    
-    alert(`✅ Билеты забронированы!\nВаш код: ${myCode}\n\nУ вас 5 минут на оплату. Жмите "Я оплатил" в Моих бронях.`);
-    selectedTickets.clear();
-    renderTickets();
-  } catch (err) {
-    alert('Ошибка: ' + err.message);
-  } finally {
-    btn.innerHTML = 'Забронировать'; btn.disabled = false;
-  }
-}
-
-function renderMyBookings() {
-  const activeList = document.getElementById('my-history-active');
-  if(activeList) activeList.innerHTML = '';
-
-  const savedCodes = JSON.parse(localStorage.getItem('myCodesByNames')) || {};
-  const allMyCodes = Object.values(savedCodes);
-  
-  const oldCode = localStorage.getItem('myBookingCode');
-  if (oldCode && !allMyCodes.includes(oldCode)) allMyCodes.push(oldCode);
-
-  if (!allMyCodes.length) { 
-    if(activeList) activeList.innerHTML = '<p style="color:var(--muted); text-align:center;">У вас пока нет броней.</p>'; 
-    return; 
-  }
-
-  let hasActive = false;
-  const now = Date.now();
-  let allBookings = [];
-
-  raffles.forEach(r => {
-    if (!r.soldTickets) return;
-    
-    allMyCodes.forEach(code => {
-      const myTickets = r.soldTickets.filter(t => t.bookingCode === code);
-      if (myTickets.length > 0) {
-        const ownerName = myTickets[0].owner;
-        const pending = myTickets.filter(t => t.status === 'pending');
-        const waiting = myTickets.filter(t => t.status === 'waiting_admin');
-        const confirmed = myTickets.filter(t => t.status === 'confirmed');
-        const rejected = myTickets.filter(t => t.status === 'rejected');
-        
-        let cardClass = 'active-booking';
-        let html = '';
-        let sortTime = 0;
-        
-        if (confirmed.length > 0) {
-          cardClass = 'success-booking';
-          html = `<div class="my-booking-card ${cardClass}"><p style="font-size:12px; color:var(--muted);">Игрок: <b>${ownerName}</b> (Код: ${code})</p>`;
-          html += `<p><strong>${r.prizeName}</strong><br><span style="color:var(--success)">✅ Админ принял!</span><br>Билеты: ${confirmed.map(t=>t.num).join(', ')}</p>`;
-          html += `</div>`;
-          sortTime = 1;
-          allBookings.push({ html, time: sortTime });
-          return;
-        }
-
-        if (rejected.length > 0 || (pending.length > 0 && Math.min(...pending.map(t => t.expireAt || 0)) < now)) {
-          cardClass = 'reject-booking';
-          html = `<div class="my-booking-card ${cardClass}"><p style="font-size:12px; color:var(--muted);">Игрок: <b>${ownerName}</b> (Код: ${code})</p>`;
-          if (rejected.length > 0) {
-            html += `<p><strong>${r.prizeName}</strong><br><span style="color:var(--danger)">❌ Админ отклонил бронь</span></p>`;
-          } else {
-            html += `<p><strong>${r.prizeName}</strong><br><span style="color:var(--danger)">❌ Время вышло (бронь слетела)</span></p>`;
-          }
-          html += `</div>`;
-          sortTime = 0;
-          allBookings.push({ html, time: sortTime });
-          return;
-        }
-
-        if (pending.length > 0 || waiting.length > 0) {
-          html = `<div class="my-booking-card ${cardClass}"><p style="font-size:12px; color:var(--muted);">Игрок: <b>${ownerName}</b> (Код: ${code})</p>`;
-          
-          if (waiting.length) {
-            html += `<p><strong>${r.prizeName}</strong><br>Билеты: ${waiting.map(t=>t.num).join(', ')}<br><span style="color:var(--accent)">📩 На проверке у админа</span></p>`;
-          }
-          
-          if (pending.length) {
-            const minExpire = Math.min(...pending.map(t => t.expireAt || 0));
-            const left = Math.max(0, Math.floor((minExpire - now) / 1000));
-            const min = Math.floor(left / 60);
-            const sec = left % 60;
-            const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
-
-            html += `<p><strong>${r.prizeName}</strong><br>Билеты: ${pending.map(t=>t.num).join(', ')}<br>Сумма: ${pending.length * r.ticketPrice} ₽</p>
-              <p style="color:var(--warning); font-size:13px;">Реквизиты: ${r.paymentDetails}</p>
-              <p style="font-weight:bold; margin-top:8px; color:var(--danger);">⏳ Осталось: ${timeStr}</p>
-              <button class="btn-success btn-sm" style="margin-top:8px; width:100%;" onclick="payBooking('${r.id}', '${code}')">✅ Я оплатил</button>
-              <button class="btn-danger btn-sm" style="margin-top:8px; width:100%;" onclick="cancelBooking('${r.id}', '${code}')">❌ Отменить бронь</button>`;
-          }
-          html += `</div>`;
-          sortTime = Math.min(...pending.map(t => t.expireAt || now)) + 1000000000;
-          allBookings.push({ html, time: sortTime });
-        }
-      }
-    });
-  });
-
-  allBookings.sort((a, b) => b.time - a.time);
-  
-  if (allBookings.length > 0) {
-    hasActive = true;
-    activeList.innerHTML = allBookings.map(b => b.html).join('');
-  }
-
-  if (!hasActive && activeList) activeList.innerHTML = '<p style="color:var(--muted); text-align:center;">У вас нет активных броней.</p>';
-}
-
-async function payBooking(raffleId, code) {
-  const r = raffles.find(x => x.id === raffleId);
-  r.soldTickets.forEach(t => { if (t.bookingCode === code && t.status === 'pending') t.status = 'waiting_admin'; });
-  await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
-  alert('✅ Отлично! Ожидайте подтверждения от организатора.');
-  loadRaffles();
-  renderMyBookings();
-}
-
-async function cancelBooking(raffleId, code) {
-  if (!confirm('Вы уверены, что хотите отменить бронь?')) return;
-  const r = raffles.find(x => x.id === raffleId);
-  r.soldTickets = r.soldTickets.filter(t => !(t.bookingCode === code && (t.status === 'pending' || t.status === 'waiting_admin')));
-  await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
-  alert('Бронь отменена.');
-  loadRaffles();
-  renderMyBookings();
-}
-
-async function checkExpiredBookings() {
-  let changed = false;
-  const now = Date.now();
-  for (let r of raffles) {
-    if (!r.soldTickets) continue;
-    
-    let hasExpired = false;
-    r.soldTickets.forEach(t => {
-      if (t.status === 'pending' && t.expireAt && t.expireAt < now) hasExpired = true;
-    });
-
-    if (hasExpired) {
-      r.soldTickets = r.soldTickets.filter(t => t.status !== 'pending' || !t.expireAt || t.expireAt > now);
-      await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
-      changed = true;
-    }
-  }
-  
-  if (changed) {
-    loadRaffles();
-    renderMyBookings();
-  }
 }
 
 function updateAdminCounters() {
   let pending = 0, unpublished = 0;
+  const peopleWaiting = new Set();
+  
   raffles.forEach(r => {
     if (!r.isPublished) unpublished++;
-    pending += (r.soldTickets || []).filter(t => t.status === 'waiting_admin').length;
+    
+    (r.soldTickets || []).forEach(t => {
+      if (t.status === 'waiting_admin' || t.status === 'pending') {
+        peopleWaiting.add(t.bookingCode);
+      }
+    });
   });
-  document.getElementById('pendingCount').innerText = pending;
+
+  document.getElementById('pendingCount').innerText = peopleWaiting.size;
   document.getElementById('reviewCount').innerText = unpublished;
 }
 
 function toggleAdminSection(section) {
   const p = document.getElementById('pendingList'), r = document.getElementById('reviewList');
-  if (section === 'pending') { r.classList.add('hidden'); p.classList.toggle('hidden'); if (!p.classList.contains('hidden')) renderPendingAdminList(); }
-  else { p.classList.add('hidden'); r.classList.toggle('hidden'); if (!r.classList.contains('hidden')) renderReviewAdminList(); }
+  if (section === 'pending') { 
+    r.classList.add('hidden'); 
+    p.classList.toggle('hidden'); 
+    if (!p.classList.contains('hidden')) renderPendingAdminList(); 
+  }
+  else { 
+    p.classList.add('hidden'); 
+    r.classList.toggle('hidden'); 
+    if (!r.classList.contains('hidden')) renderReviewAdminList(); 
+  }
 }
 
 function renderPendingAdminList() {
   const list = document.getElementById('pendingList');
   list.innerHTML = '';
   let has = false;
+  
   raffles.forEach(r => {
     const grouped = {};
-    (r.soldTickets || []).filter(t => t.status === 'waiting_admin').forEach(t => {
-      if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { owner: t.owner, tickets: [] };
+    (r.soldTickets || []).filter(t => t.status === 'waiting_admin' || t.status === 'pending').forEach(t => {
+      if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { owner: t.owner, tickets: [], status: t.status };
       grouped[t.bookingCode].tickets.push(t.num);
+      if (t.status === 'waiting_admin') grouped[t.bookingCode].status = 'waiting_admin'; 
     });
+    
     for (let code in grouped) {
       has = true;
       const d = grouped[code];
-      list.innerHTML += `<div class="admin-list-item"><p><strong>${r.prizeName}</strong></p><p>Имя: ${d.owner} (${code})</p><p>Билеты: ${d.tickets.join(', ')}</p><p>Сумма: ${d.tickets.length * r.ticketPrice} ₽</p>
-        <div class="actions"><button class="btn-success btn-sm" onclick="approve('${r.id}', '${code}')">✅ Принять</button><button class="btn-danger btn-sm" onclick="reject('${r.id}', '${code}')">❌ Отклонить</button></div></div>`;
+      list.innerHTML += `<div class="fade-in" style="background:#ffffff; padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid #fcd34d;">
+        <p><strong>${r.prizeName}</strong></p>
+        <p style="font-size:14px;">Имя: ${d.owner} <br><span style="color:var(--accent); font-weight:bold; cursor:pointer;" onclick="copyCode('${code}')">Код: ${code} 📋</span></p>
+        <p style="font-size:14px;">Билеты: ${d.tickets.join(', ')}</p>
+        <p style="font-size:14px;">Сумма: <b>${d.tickets.length * r.ticketPrice} ₽</b></p>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="btn-success btn-sm" style="flex:1;" onclick="approve('${r.id}', '${code}')">✅ Принять</button>
+          <button class="btn-danger btn-sm" style="flex:1;" onclick="reject('${r.id}', '${code}')">❌ Отклонить</button>
+        </div>
+      </div>`;
     }
   });
-  if (!has) list.innerHTML = '<p style="color:var(--muted);">Нет заявок.</p>';
+  
+  if (!has) list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center;">Нет заявок на проверку.</p>';
 }
 
 function renderReviewAdminList() {
   const list = document.getElementById('reviewList');
   list.innerHTML = '';
   const unpub = raffles.filter(r => !r.isPublished);
-  if (!unpub.length) { list.innerHTML = '<p style="color:var(--muted);">Нет черновиков.</p>'; return; }
+  if (!unpub.length) { list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center;">Нет черновиков.</p>'; return; }
+  
   unpub.forEach(r => {
-    let timeInfo = r.endTime ? `<p style="color:var(--warning); font-size:12px;">⏳ Время начнется после публикации</p>` : '';
-    list.innerHTML += `<div class="admin-list-item">
+    list.innerHTML += `<div class="fade-in" style="background:#ffffff; padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid #cbd5e1;">
       <p><strong>${r.prizeName}</strong></p>
-      ${timeInfo}
-      <div class="actions">
-        <button class="btn-outline btn-sm" onclick="openRaffle('${r.id}')">👁 Посмотреть</button>
-        <button class="btn-primary btn-sm" onclick="publishRaffleById('${r.id}')">Опубликовать</button>
-        <button class="btn-danger btn-sm" onclick="deleteRaffle('${r.id}')">Удалить</button>
+      <p style="font-size:12px; color:var(--muted);">${r.endTime ? '⏳ Таймер запустится после публикации' : 'Без таймера'}</p>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn-outline btn-sm" style="flex:1; background:#f8fafc;" onclick="openRaffle('${r.id}')">👁 Посмотреть</button>
+        <button class="btn-danger btn-sm" style="flex:1;" onclick="deleteRaffle('${r.id}')">Удалить</button>
       </div>
     </div>`;
   });
@@ -816,32 +1319,24 @@ function renderReviewAdminList() {
 
 async function approve(id, code) {
   const r = raffles.find(x => x.id === id);
-  r.soldTickets.forEach(t => { if (t.bookingCode === code) t.status = 'confirmed'; });
-  await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
-  alert('✅ Подтверждено!');
-  loadRaffles(); 
-  toggleAdminSection('pending');
+  if (r) {
+    r.soldTickets.forEach(t => { if (t.bookingCode === code) t.status = 'confirmed'; });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
+    showToast('✅ Оплата принята!', 'success');
+    loadRaffles(); 
+    toggleAdminSection('pending');
+  }
 }
 
 async function reject(id, code) {
   const r = raffles.find(x => x.id === id);
-  r.soldTickets.forEach(t => { if (t.bookingCode === code) t.status = 'rejected'; });
-  await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
-  alert('❌ Отклонено.');
-  loadRaffles(); 
-  toggleAdminSection('pending');
-}
-
-async function publishRaffleById(id) {
-  const r = raffles.find(x => x.id === id);
-  if (r.endTime && !r.isDrawn) {
-    r.endTime = Date.now() + r.endTime;
+  if (r) {
+    r.soldTickets.forEach(t => { if (t.bookingCode === code) t.status = 'rejected'; });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
+    showToast('❌ Бронь отклонена', 'error');
+    loadRaffles(); 
+    toggleAdminSection('pending');
   }
-  r.isPublished = true;
-  await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
-  alert('✅ Опубликовано!');
-  loadRaffles(); 
-  toggleAdminSection('review');
 }
 
 async function deleteRaffle(id) {
@@ -850,117 +1345,90 @@ async function deleteRaffle(id) {
     const { error } = await supabaseClient.from('raffles').delete().eq('id', id);
     if (error) throw error;
     raffles = raffles.filter(r => r.id !== id);
+    showToast('Розыгрыш удален');
     loadRaffles();
     toggleAdminSection('review');
+    if (currentRaffle && currentRaffle.id === id) switchView('main');
   } catch (err) {
-    alert('❌ Ошибка при удалении: ' + err.message);
+    showToast('Ошибка при удалении: ' + err.message, 'error');
   }
-}
-
-async function adminGiveTickets() {
-  const name = document.getElementById('a-name').value.trim();
-  if (!name || selectedTickets.size === 0) return alert('Введите имя и выберите билеты!');
-  
-  let savedCodes = JSON.parse(localStorage.getItem('myCodesByNames')) || {};
-  let myCode = savedCodes[name];
-  if (!myCode) {
-    const letter = name[0].toUpperCase();
-    myCode = letter + "-" + Math.floor(1000 + Math.random() * 9000);
-    savedCodes[name] = myCode;
-    localStorage.setItem('myCodesByNames', JSON.stringify(savedCodes));
-  }
-
-  const inserts = Array.from(selectedTickets).map(n => ({ num: n, owner: name, status: 'confirmed', bookingCode: myCode }));
-  currentRaffle.soldTickets.push(...inserts);
-  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
-  selectedTickets.clear(); document.getElementById('a-name').value = '';
-  openRaffle(currentRaffle.id);
-}
-
-function renderAdminTable() {
-  const tbody = document.querySelector('#admin-table tbody');
-  tbody.innerHTML = '';
-  const grouped = {};
-  (currentRaffle.soldTickets || []).forEach(t => {
-    if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { owner: t.owner, tickets: [], status: t.status };
-    grouped[t.bookingCode].tickets.push(t.num);
-  });
-  for (let code in grouped) {
-    const d = grouped[code];
-    let st = '';
-    let confirmBtn = '';
-    
-    if (d.status === 'confirmed') st = '✅';
-    else if (d.status === 'waiting_admin') st = '📩';
-    else st = '⏳';
-    
-    if (d.status === 'pending' || d.status === 'waiting_admin') {
-      confirmBtn = `<button class="btn-success btn-sm" onclick="approve('${currentRaffle.id}', '${code}')" title="Подтвердить">✅</button>`;
-    }
-    
-    tbody.innerHTML += `<tr>
-      <td>${d.owner}<br><small style="color:var(--accent); cursor:pointer;" onclick="navigator.clipboard.writeText('${code}'); alert('Код ${code} скопирован!')">${code}</small></td>
-      <td>${d.tickets.join(', ')}</td>
-      <td>${st}</td>
-      <td>
-        <div class="action-btns">
-          ${confirmBtn}
-          <button class="btn-danger btn-sm" onclick="removeParticipant('${code}')">✕</button>
-        </div>
-      </td>
-    </tr>`;
-  }
-}
-
-async function removeParticipant(code) {
-  if (!confirm('Удалить участника?')) return;
-  currentRaffle.soldTickets = currentRaffle.soldTickets.filter(t => t.bookingCode !== code);
-  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
-  openRaffle(currentRaffle.id);
 }
 
 async function startDraw() {
-  const confirmed = currentRaffle.soldTickets.filter(t => t.status === 'confirmed');
-  if (confirmed.length < currentRaffle.totalTickets) return alert('Не все билеты оплачены!');
+  let availableTickets = (currentRaffle.soldTickets || []).filter(t => t.status === 'confirmed');
+  
+  if (availableTickets.length < currentRaffle.totalTickets) return showToast('Не все билеты оплачены!', 'error');
   
   document.getElementById('draw-btn').classList.add('hidden');
   document.getElementById('draw-area').classList.remove('hidden');
   
-  const winners = [], used = new Set();
+  const winners = [];
+  const totalInitialTickets = currentRaffle.totalTickets;
+  const totalParticipants = new Set(availableTickets.map(t => t.bookingCode)).size;
+  const drawDate = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   for (let i = 1; i <= currentRaffle.prizesCount; i++) {
+    if (availableTickets.length === 0) break;
+    
     document.getElementById('draw-title').innerText = `Приз ${i} из ${currentRaffle.prizesCount}`;
-    let avail = confirmed.filter(t => !used.has(t.owner));
-    if (!avail.length) break;
     
-    const w = avail[Math.floor(Math.random() * avail.length)];
-    await animateNum(w.num);
-    used.add(w.owner);
-    winners.push({ ...w, prizeNum: i });
+    const winnerTicket = availableTickets[Math.floor(Math.random() * availableTickets.length)];
     
-    document.getElementById('winners-list').innerHTML += `
-      <div class="winner-card">
-        <div class="winner-cup">🏆</div>
-        <div class="winner-text">ПОЗДРАВЛЯЕМ!</div>
-        <div class="winner-name">${w.owner}</div>
-        <div class="winner-prize-box">
-          <div class="winner-prize-title">Выигрышный приз:</div>
-          <div class="winner-prize-name">${currentRaffle.prizeName}</div>
+    await animateNum(winnerTicket.num);
+    
+    const ticketsAtStart = (currentRaffle.soldTickets || []).filter(t => t.bookingCode === winnerTicket.bookingCode && t.status === 'confirmed').length;
+    
+    const currentTotal = availableTickets.length;
+    const chance = Math.round((ticketsAtStart / currentTotal) * 100);
+
+    winners.push({ 
+      ...winnerTicket, 
+      prizeNum: i, 
+      stats: { 
+        totalTickets: totalInitialTickets, 
+        currentTotalAtDraw: currentTotal,
+        totalParticipants: totalParticipants,
+        personalTickets: ticketsAtStart,
+        chance: chance,
+        date: drawDate
+      } 
+    });
+    
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    
+    const winnerHtml = `
+      <div class="fade-in" style="text-align:center; padding:24px; background:#ffffff; border-radius:16px; border:2px solid var(--success); margin-top:16px; box-shadow:0 8px 30px rgba(16,185,129,0.15);">
+        <div style="font-size:56px; margin-bottom:8px;">🏆</div>
+        <div style="color:var(--success); font-weight:800; font-size:13px; letter-spacing:2px; margin-bottom:8px;">ПОЗДРАВЛЯЕМ!</div>
+        <div style="font-size:22px; font-weight:900; margin-bottom:12px; color:#064e3b;">${winnerTicket.owner}</div>
+        <div style="background:#f0fdf4; padding:10px; border-radius:10px; margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--muted);">Выигрышный приз:</div>
+          <div style="font-size:16px; color:var(--accent); font-weight:bold;">${currentRaffle.prizeName}</div>
         </div>
-        <div class="winner-ticket">Билет № <b>${w.num}</b></div>
+        <div style="font-size:14px; color:var(--muted); margin-bottom:8px;">Билет № <b>${winnerTicket.num}</b></div>
+        
+        <div style="text-align:left; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#64748b; margin-bottom:8px;">
+          <p style="margin-bottom:4px;"><b>Статистика розыгрыша:</b></p>
+          <p>• Всего билетов: ${totalInitialTickets}</p>
+          <p>• На момент розыгрыша: ${currentTotal} билетов</p>
+          <p>• Билетов у ${winnerTicket.owner}: ${ticketsAtStart} (Шанс победы: ${chance}%)</p>
+        </div>
+        <div style="font-size:11px; color:#94a3b8;">📅 ${drawDate}</div>
       </div>`;
-    await new Promise(r => setTimeout(r, 1500));
+      
+    document.getElementById('winners-list').insertAdjacentHTML('afterbegin', winnerHtml);
+      
+    availableTickets = availableTickets.filter(t => t.num !== winnerTicket.num);
+    
+    await new Promise(r => setTimeout(r, 2000));
   }
   
   document.getElementById('draw-area').classList.add('hidden');
-  
   currentRaffle.isDrawn = true;
   currentRaffle.winnersHistory = winners;
   await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
-  alert('Розыгрыш завершен!');
   
-  const drawBlock = document.getElementById('draw-block');
-  document.getElementById('raffle-info').before(drawBlock);
-  
+  showToast('Розыгрыш завершен!', 'success');
   loadRaffles();
 }
 
@@ -970,20 +1438,38 @@ function animateNum(final) {
     let ticks = 0;
     const int = setInterval(() => {
       el.innerText = Math.floor(Math.random() * currentRaffle.totalTickets) + 1;
-      if (++ticks >= 15) { clearInterval(int); el.innerText = final; setTimeout(res, 800); }
+      if (++ticks >= 20) { clearInterval(int); el.innerText = final; setTimeout(res, 800); }
     }, 50);
   });
 }
 
-function updateTimer() {
-  if (!currentRaffle.endTime || currentRaffle.isDrawn) return;
-  const el = document.getElementById('timer-text');
-  timerInterval = setInterval(() => {
-    const diff = currentRaffle.endTime - Date.now();
-    if (diff <= 0) { el.innerText = 'Время вышло!'; clearInterval(timerInterval); return; }
-    const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-    el.innerText = `${d}д ${h}ч ${m}м ${s}с`;
-  }, 1000);
+function renderWinners(winners) {
+  const wList = document.getElementById('winners-list');
+  wList.innerHTML = '';
+  if (winners) {
+    const reversedWinners = [...winners].reverse();
+    
+    reversedWinners.forEach(w => {
+      wList.innerHTML += `<div class="fade-in" style="text-align:center; padding:24px; background:#ffffff; border-radius:16px; border:2px solid var(--success); margin-top:16px; box-shadow:0 8px 30px rgba(16,185,129,0.15);">
+        <div style="font-size:56px; margin-bottom:8px;">🏆</div>
+        <div style="color:var(--success); font-weight:800; font-size:13px; letter-spacing:2px; margin-bottom:8px;">ПОЗДРАВЛЯЕМ!</div>
+        <div style="font-size:22px; font-weight:900; margin-bottom:12px; color:#064e3b;">${w.owner}</div>
+        <div style="background:#f0fdf4; padding:10px; border-radius:10px; margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--muted);">Выигрышный приз:</div>
+          <div style="font-size:16px; color:var(--accent); font-weight:bold;">${currentRaffle.prizeName}</div>
+        </div>
+        <div style="font-size:14px; color:var(--muted); margin-bottom:8px;">Билет № <b>${w.num}</b></div>
+        
+        <div style="text-align:left; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#64748b; margin-bottom:8px;">
+          <p style="margin-bottom:4px;"><b>Статистика:</b></p>
+          <p>• Всего билетов: ${w.stats ? w.stats.totalTickets : currentRaffle.totalTickets}</p>
+          <p>• На момент розыгрыша: ${w.stats ? w.stats.currentTotalAtDraw : '-'} билетов</p>
+          <p>• Билетов у ${w.owner}: ${w.stats ? w.stats.personalTickets : '-'} (Шанс: ${w.stats ? w.stats.chance + '%' : '-'})</p>
+        </div>
+        <div style="font-size:11px; color:#94a3b8;">📅 ${w.stats ? w.stats.date : ''}</div>
+      </div>`;
+    });
+  }
 }
 </script>
 </body>
