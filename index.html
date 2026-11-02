@@ -148,7 +148,7 @@
   .nav-badge {
     position: absolute; top: -4px; right: 4px;
     background: var(--danger); color: white;
-    font-size: 10px; font-weight: 800;
+    font-size: font-weight: 800;
     min-width: 16px; height: 16px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     padding: 0 4px;
@@ -172,6 +172,8 @@
 </head>
 <body>
 <div id="toast-container"></div>
+
+<!-- ОКНО ПОДДЕРЖКИ -->
 <div class="modal" id="support-modal" onclick="this.style.display='none'">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 style="margin-bottom: 12px; color: var(--text);">💬 Поддержка</h3>
@@ -180,6 +182,26 @@
     <button class="btn-outline" style="margin-top: 12px;" onclick="document.getElementById('support-modal').style.display='none'">Закрыть</button>
   </div>
 </div>
+
+<!-- НОВОЕ ОКНО С ПРАВИЛАМИ -->
+<div class="modal" id="rules-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()" style="text-align: left; max-height: 80vh; overflow-y: auto;">
+    <h3 style="margin-bottom: 16px; color: var(--text); text-align: center;">📖 Как играть</h3>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 1. Выбирай билеты</b><br>Заходи на сайт, выбирай активный розыгрыш. Нажми на зеленые свободные билеты. Ты можешь выбрать как один билет, так и несколько.</p>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 2. Бронируй и оплачивай</b><br>Введи свое имя. Система выдаст тебе <b>личный код</b>. У тебя будет 5 минут, чтобы перевести деньги по реквизитам. После оплаты нажми кнопку <b>«Я оплатил»</b> в разделе «Мои брони».</p>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 3. Жди подтверждения</b><br>Организатор проверит оплату, и твой билет станет зеленым. Если не успел оплатить за 5 минут — бронь сгорит.</p>
+    
+    <p style="margin-bottom: 16px; font-size: 14px;"><b>Как проходит розыгрыш?</b><br>Когда все билеты оплачены, организатор крутит рулетку. Система случайно выбирает победителя. Чем больше билетов ты купил, тем выше шанс!</p>
+
+    <p style="margin-bottom: 16px; font-size: 14px; background: #f0fdf4; padding: 10px; border-radius: 8px; color: #166534;">💡 <b>Есть идея приза?</b><br>Напиши нам в поддержку, и мы разыграем то, что ты хочешь!</p>
+
+    <button class="btn-primary" onclick="document.getElementById('rules-modal').style.display='none'">Понятно, играем!</button>
+  </div>
+</div>
+
 <div class="container" id="app">
   <div class="header fade-in">
     <h1><span>🍀</span> Твой Шанс</h1>
@@ -189,6 +211,7 @@
       Поделиться с друзьями
     </div>
   </div>
+
   <div id="view-main" class="fade-in">
     <div class="tabs">
       <div class="tab active" id="tab-active-btn" onclick="switchTab('active')">Активные (0)</div>
@@ -196,6 +219,7 @@
     </div>
     <div id="grid-active" class="grid"></div>
     <div id="grid-finished" class="grid hidden"></div>
+    
     <div id="admin-panel" class="card hidden" style="margin-top: 20px; border-color: var(--card-border);">
       <h2 style="margin-bottom: 12px; font-size: 18px; color: var(--text);">Управление <span class="admin-badge">ADMIN</span></h2>
       <button class="btn-primary" onclick="switchView('create')" style="margin-bottom: 8px;">➕ Создать розыгрыш</button>
@@ -205,16 +229,20 @@
       <div id="reviewList" class="hidden" style="margin-bottom: 8px;"></div>
       <button class="btn-outline" onclick="toggleAdminRole()">Выйти</button>
     </div>
+    
     <div class="bottom-links">
+      <span onclick="document.getElementById('rules-modal').style.display='flex'" style="color: #059669; font-weight: 700; margin-bottom: 4px;">📖 Как играть и правила</span>
       <span id="adminLoginBtn" onclick="showAdminLogin()">🔐 Вход для организатора</span>
       <span onclick="document.getElementById('support-modal').style.display='flex'">💬 Служба поддержки</span>
     </div>
   </div>
+
   <div id="view-history" class="hidden fade-in">
     <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← На главную</button>
     <h2 style="font-size: 20px; margin-bottom: 12px;">Мои брони</h2>
     <div id="my-history-active"></div>
   </div>
+
   <div id="view-create" class="hidden fade-in">
     <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← Назад</button>
     <div class="card">
@@ -225,12 +253,11 @@
         <input id="c-price" type="number" inputmode="numeric" placeholder="Цена (₽)">
       </div>
       
-      <!-- УМНЫЙ КАЛЬКУЛЯТОР -->
+      <!-- КАЛЬКУЛЯТОР -->
       <div id="calc-preview" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: 14px; color: #166534; display: flex; justify-content: space-between; align-items: center;">
         <span>💰 Итого к сбору:</span>
         <strong id="calc-total" style="font-size: 16px;">0 ₽</strong>
       </div>
-      <!-- КОНЕЦ КАЛЬКУЛЯТОРА -->
 
       <select id="c-prizes"><option value="1">1 приз</option><option value="2">2 приза</option><option value="3">3 приза</option></select>
       <select id="c-time-select">
@@ -254,7 +281,8 @@
       <button class="btn-primary" style="margin-top: 16px;" onclick="createRaffle()" id="btn-create-raffle">Создать и на проверку</button>
     </div>
   </div>
-  <div id="view-raffle" class="hidden fade-in">
+
+<div id="view-raffle" class="hidden fade-in">
     <button class="btn-outline btn-sm" style="margin-bottom: 12px;" onclick="switchView('main')">← Назад</button>
     <div class="card hidden" id="draw-block" style="border-color: #fcd34d; background: #fffbeb;">
       <button id="draw-btn" class="btn-warning hidden" onclick="startDraw()">🎲 Крутить рулетку</button>
@@ -317,6 +345,7 @@
       </div>
     </div>
   </div>
+
   <div class="bottom-nav">
     <div class="nav-item active" onclick="switchView('main')">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -332,6 +361,7 @@
     <img id="modal-img" src="" style="max-width: 95%; max-height: 95%; border-radius: 12px;">
   </div>
 </div>
+
 <script>
 const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
@@ -342,9 +372,7 @@ let uploadedImageBase64 = "";
 let isSubmitting = false;
 let timerInterval = null, mainTimerInterval = null;
 
-// Хранилище кодов и значков
 let myCodes = JSON.parse(localStorage.getItem('myCodes')) || {}; 
-// Хранилище "прочитанных" статусов (чтобы уведомления гасли)
 let readStatuses = JSON.parse(localStorage.getItem('readStatuses')) || {};
 
 const ICONS = ['⭐', '✅', '💎', '🔥', '🍀', '🎯', '🎲', '👑', '🚀', '💡'];
@@ -364,7 +392,6 @@ function getNextIcon() {
   return '⭐';
 }
 
-// УМНЫЙ КАЛЬКУЛЯТОР
 function updateCalc() {
   const tickets = parseInt(document.getElementById('c-tickets').value) || 0;
   const price = parseInt(document.getElementById('c-price').value) || 0;
@@ -390,7 +417,6 @@ window.onload = () => {
   const savedReq = localStorage.getItem('myPaymentDetails');
   if (savedReq) document.getElementById('c-req').value = savedReq;
   
-  // Подключаем калькулятор
   const cTickets = document.getElementById('c-tickets');
   const cPrice = document.getElementById('c-price');
   if (cTickets && cPrice) {
@@ -406,7 +432,6 @@ window.onload = () => {
   if (lastView && lastView !== 'main') switchView(lastView);
 };
 
-// Обновленная логика уведомлений
 function updateNavBadge() {
   let unreadCount = 0;
   
@@ -496,10 +521,9 @@ function toggleAdminRole() {
   }
 }
 
-// Новая функция проверки пароля через Supabase
 async function showAdminLogin() {
   const pwd = prompt('Введите пароль администратора:');
-  if (pwd === null) return; // Если нажали "Отмена"
+  if (pwd === null) return;
 
   try {
     const { data, error } = await supabaseClient.rpc('check_admin_password', {
@@ -947,7 +971,7 @@ function renderParticipants() {
   });
 
   const uniqueCodes = [];
-  for (let i = currentRaffle.soldTickets.length - 1; i >= 0; i--) {
+ for (let i = currentRaffle.soldTickets.length - 1; i >= 0; i--) {
     const t = currentRaffle.soldTickets[i];
     if (t.status !== 'rejected' && !uniqueCodes.includes(t.bookingCode)) {
       uniqueCodes.push(t.bookingCode);
@@ -1057,7 +1081,8 @@ function renderMyBookings() {
               <p style="font-size:14px; margin:4px 0; color:#064e3b;">К оплате: <b>${pending.length * r.ticketPrice} ₽</b></p>
               <p style="font-size:13px; color:#b45309;">Реквизиты: ${r.paymentDetails}</p>
               <button class="btn-success" style="margin-top:10px; padding:10px; font-size:14px;" onclick="payBooking('${r.id}', '${code}')">✅ Я оплатил</button>
-              <button class="btn-outline" style="margin-top:8px; padding:10px; font-size:14px; background:#fff;" onclick="cancelBooking('${r.id}', '${code}')">❌ Отменить</button></div>`;
+              <button class="btn-outline" style="margin-top:8px; padding:10px; font-size:14px; background:#fff;" onclick="cancelBooking('${r.id}', '${code}')">❌ Отменить</button>
+            </div>`;
           } else {
             html += `<div style="background:#fef2f2; padding:10px; border-radius:8px; margin-bottom:8px; color:#991b1b;"><span style="font-weight:800;">⌛ Время вышло</span><br>Бронь слетела.</div>`;
           }
@@ -1180,7 +1205,7 @@ async function createRaffle() {
     document.getElementById('preview-img').style.display = 'none';
     document.getElementById('c-name').value = ''; document.getElementById('c-req').value = '';
     document.getElementById('c-tickets').value = ''; document.getElementById('c-price').value = '';
-    updateCalc(); // Сбрасываем калькулятор
+    updateCalc();
     
     showToast('Розыгрыш создан! Ищите в "На проверке".', 'success');
     loadRaffles(); switchView('main');
