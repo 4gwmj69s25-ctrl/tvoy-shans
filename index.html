@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -148,7 +150,7 @@
   .nav-badge {
     position: absolute; top: -4px; right: 4px;
     background: var(--danger); color: white;
-    font-size: font-weight: 800;
+    font-size: 10px; font-weight: 800;
     min-width: 16px; height: 16px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     padding: 0 4px;
@@ -173,17 +175,15 @@
 <body>
 <div id="toast-container"></div>
 
-<!-- ОКНО ПОДДЕРЖКИ -->
 <div class="modal" id="support-modal" onclick="this.style.display='none'">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 style="margin-bottom: 12px; color: var(--text);">💬 Поддержка</h3>
     <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">Возникли вопросы или проблемы с оплатой? Напишите нам!</p>
-    <a href="https://vk.ru/s.ermakov1" target="_blank" class="btn-primary" style="text-decoration: none; display: flex;">Перейти в ВК</a>
+    <a href="https://vk.ru/tvoyshansnapriz" target="_blank" class="btn-primary" style="text-decoration: none; display: flex;">Перейти в группу ВК</a>
     <button class="btn-outline" style="margin-top: 12px;" onclick="document.getElementById('support-modal').style.display='none'">Закрыть</button>
   </div>
 </div>
 
-<!-- НОВОЕ ОКНО С ПРАВИЛАМИ -->
 <div class="modal" id="rules-modal" onclick="this.style.display='none'">
   <div class="modal-content" onclick="event.stopPropagation()" style="text-align: left; max-height: 80vh; overflow-y: auto;">
     <h3 style="margin-bottom: 16px; color: var(--text); text-align: center;">📖 Как играть</h3>
@@ -196,7 +196,9 @@
     
     <p style="margin-bottom: 16px; font-size: 14px;"><b>Как проходит розыгрыш?</b><br>Когда все билеты оплачены, организатор крутит рулетку. Система случайно выбирает победителя. Чем больше билетов ты купил, тем выше шанс!</p>
 
-    <p style="margin-bottom: 16px; font-size: 14px; background: #f0fdf4; padding: 10px; border-radius: 8px; color: #166534;">💡 <b>Есть идея приза?</b><br>Напиши нам в поддержку, и мы разыграем то, что ты хочешь!</p>
+    <a href="https://vk.ru/tvoyshansnapriz" target="_blank" style="text-decoration: none; display: block; margin-bottom: 16px; font-size: 14px; background: #f0fdf4; padding: 12px; border-radius: 8px; color: #166534; border: 1px solid #a7f3d0;">
+      💡 <b>Есть идея приза?</b><br>Нажми сюда, чтобы написать нам, и мы разыграем то, что ты хочешь!
+    </a>
 
     <button class="btn-primary" onclick="document.getElementById('rules-modal').style.display='none'">Понятно, играем!</button>
   </div>
@@ -253,7 +255,6 @@
         <input id="c-price" type="number" inputmode="numeric" placeholder="Цена (₽)">
       </div>
       
-      <!-- КАЛЬКУЛЯТОР -->
       <div id="calc-preview" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: 14px; color: #166534; display: flex; justify-content: space-between; align-items: center;">
         <span>💰 Итого к сбору:</span>
         <strong id="calc-total" style="font-size: 16px;">0 ₽</strong>
@@ -971,7 +972,7 @@ function renderParticipants() {
   });
 
   const uniqueCodes = [];
- for (let i = currentRaffle.soldTickets.length - 1; i >= 0; i--) {
+  for (let i = currentRaffle.soldTickets.length - 1; i >= 0; i--) {
     const t = currentRaffle.soldTickets[i];
     if (t.status !== 'rejected' && !uniqueCodes.includes(t.bookingCode)) {
       uniqueCodes.push(t.bookingCode);
