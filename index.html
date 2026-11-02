@@ -364,7 +364,9 @@
 <script>
 const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { lockAcquireTimeout: 5000 }
+});
 
 let raffles = [], currentRaffle = null, selectedTickets = new Set(), isAdmin = false;
 let uploadedImageBase64 = "";
