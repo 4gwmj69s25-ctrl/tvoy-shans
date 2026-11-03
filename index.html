@@ -1,1 +1,1813 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f0f9ff">
+<title>Твой Шанс</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root { 
+    --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 50%, #ffffff 100%);
+    --card: #ffffff; --card-border: #e2e8f0; --text: #1e293b; --muted: #64748b; 
+    --accent: #059669; --accent-glow: rgba(5, 150, 105, 0.15); --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --border-radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: var(--bg-gradient); background-attachment: fixed; color: var(--text); min-height: 100vh; padding: 16px 16px 80px 16px; line-height: 1.5; }
+  .container { max-width: 500px; margin: 0 auto; }
+  
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeInUp 0.4s ease-out forwards; }
 
+  .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+  .header h1 { font-size: 32px; font-weight: 900; color: #047857; margin-bottom: 4px; letter-spacing: -1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .header h1 span { font-size: 36px; }
+  .header p { color: var(--muted); font-size: 14px; font-weight: 500; margin-bottom: 16px; }
+
+  .card { background: var(--card); border-radius: var(--border-radius); padding: 16px; margin-bottom: 16px; border: 1px solid var(--card-border); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); transition: transform 0.2s; }
+
+  input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--card-border); background: #f8fafc; color: var(--text); font-size: 16px; outline: none; margin-bottom: 12px; transition: 0.2s; }
+  input:focus { border-color: var(--accent); background: #ffffff; box-shadow: 0 0 0 3px var(--accent-glow); }
+  
+  button { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; color: white; }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.6; pointer-events: none; }
+  
+  .btn-primary { background: var(--accent); box-shadow: 0 4px 15px var(--accent-glow); }
+  .btn-success { background: var(--success); }
+  .btn-danger { background: var(--danger); }
+  .btn-warning { background: var(--warning); color: #fff; }
+  .btn-outline { background: #ffffff; border: 1px solid var(--card-border); color: var(--text); }
+  .btn-sm { padding: 8px 12px; font-size: 13px; width: auto; border-radius: 8px; }
+
+  .tabs-container { margin-bottom: 16px; }
+  .tab-header { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px 16px; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--accent); margin-bottom: 8px; transition: 0.3s; }
+  .tab-header:active { transform: scale(0.98); }
+  .tab-content { display: none; flex-direction: column; gap: 12px; }
+  .tab-content.active { display: flex; }
+
+  .game-card { display: flex; flex-direction: row; align-items: stretch; position: relative; border-radius: var(--border-radius); background: var(--card); border: 1px solid var(--card-border); cursor: pointer; padding: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+  .game-card img { width: 90px; height: 90px; object-fit: cover; border-radius: 12px; margin-right: 16px; flex-shrink: 0; }
+  .game-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .game-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
+  .game-code { font-size: 12px; font-weight: 600; color: var(--muted); background: #e2e8f0; padding: 2px 6px; border-radius: 6px; }
+  .game-stats { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
+  .game-price-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; }
+  .game-price { color: var(--accent); font-weight: 800; font-size: 16px; }
+  .game-date { font-size: 11px; color: #94a3b8; text-align: right; }
+  
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .badge-prizes { background: #f3e8ff; color: #6b21a8; }
+  .my-tickets-badge { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; margin-top: 4px; }
+
+  .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; margin: 16px 0; }
+  .ticket { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid transparent; transition: 0.15s; position: relative; }
+  .ticket-free { background: #ecfdf5; color: #047857; border-color: #6ee7b7; font-weight: 800; }
+  .ticket-selected { background: #6366f1; color: white; border-color: #4f46e5; } 
+  .ticket-pending { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+  .ticket-taken { background: #f8fafc; color: #94a3b8; text-decoration: line-through; border-color: #e2e8f0; }
+  .ticket-waiting { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+  .ticket-icon { position: absolute; top: 1px; right: 3px; font-size: 12px; }
+
+  .participant-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+  .participant-row:last-child { border-bottom: none; }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #e2e8f0; z-index: 100; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 600; cursor: pointer; gap: 4px; position: relative; }
+  .nav-item.active { color: var(--accent); }
+  .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+  
+  .bottom-links { text-align: center; font-size: 13px; color: var(--muted); margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .bottom-links span { cursor: pointer; text-decoration: underline; font-weight: 500; }
+  
+  #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
+  .toast { background: #ffffff; padding: 14px; border-radius: 12px; border-left: 4px solid var(--accent); color: var(--text); font-size: 14px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: slideDown 0.3s forwards; }
+  .toast.error { border-color: var(--danger); }
+  .toast.success { border-color: var(--success); }
+  @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .hidden { display: none !important; }
+  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+  .modal-content { background: #ffffff; padding: 24px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); animation: fadeInUp 0.3s ease-out; }
+  
+  .pin-dots { display: flex; justify-content: center; gap: 15px; margin: 25px 0; }
+  .pin-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--accent); background: transparent; }
+  .pin-dot.filled { background: var(--accent); transform: scale(1.1); }
+  .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 280px; margin: 0 auto; }
+  .pin-pad-btn { font-size: 24px; font-weight: 600; padding: 15px 0; border-radius: 50%; background: #f1f5f9; color: var(--text); }
+  .pin-pad-btn.action { background: transparent; font-size: 18px; }
+
+  .profile-info-card { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); position: relative; }
+  .profile-info-card h2 { font-size: 24px; margin-bottom: 4px; }
+  .profile-code-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+  #global-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9998; display: flex; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(2px); }
+  .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  
+  .order-block { background: #f8fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  .accordion-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; }
+  .accordion-header h3 { margin: 0; font-size: 18px; color: var(--accent); }
+  .accordion-content { display: none; margin-top: 12px; }
+  .accordion-content.active { display: block; }
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+<div id="global-loader" class="hidden">
+  <div class="spinner"></div>
+  <div style="font-weight: 600; color: var(--accent);">Загрузка...</div>
+</div>
+
+<!-- МОДАЛЬНЫЕ ОКНА -->
+<div class="modal" id="support-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom: 12px;">💬 Поддержка</h3>
+    <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">Возникли вопросы или проблемы? Напишите нам!</p>
+    <a href="https://vk.ru/tvoyshansnapriz" target="_blank" class="btn-primary" style="text-decoration: none; display: flex;">Перейти в ВК</a>
+    <button class="btn-outline" style="margin-top: 12px;" onclick="document.getElementById('support-modal').style.display='none'">Закрыть</button>
+  </div>
+</div>
+
+<div class="modal" id="rules-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()" style="text-align: left; max-height: 80vh; overflow-y: auto;">
+    <h3 style="margin-bottom: 16px; text-align: center;">📖 Как играть</h3>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 1. Регистрация (чтобы сохранить билеты)</b><br>Зачем нужен профиль? Чтобы система запомнила ваши билеты и вы могли за них не переживать. При регистрации придумайте логин (любые цифры от 4 до 12, например, ваш номер телефона) и ПИН-код из 4 цифр. Никнейм увидят другие участники.</p>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 2. Выбор билетов</b><br>Заходите на главную, открывайте любой активный розыгрыш. Выбирайте понравившиеся счастливые номера (зеленые кнопки) и нажимайте «Забронировать».</p>
+    
+    <p style="margin-bottom: 10px; font-size: 14px;"><b>Шаг 3. Оплата и подтверждение</b><br>Внимание! Билеты закрепляются за вами только после оплаты. Зайдите в свой профиль, переведите деньги по реквизитам организатора (обязательно укажите свой код в комментарии) и нажмите кнопку <b>«Я оплатил»</b>.</p>
+    
+    <p style="margin-bottom: 16px; font-size: 14px;"><b>Шаг 4. Ждём итоги</b><br>Как только организатор проверит оплату, билеты станут вашими. Теперь просто ждите старта розыгрыша! Победителей выбирает удача. 🍀</p>
+    
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 16px;">
+      <p style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">💡 Есть идея приза?</p>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Предложи свою идею, и мы обязательно её разыграем!</p>
+      <a href="https://vk.ru/tvoyshansnapriz" target="_blank" class="btn-primary btn-sm" style="text-decoration: none;">Написать нам</a>
+    </div>
+
+    <button class="btn-primary" onclick="document.getElementById('rules-modal').style.display='none'">Понятно!</button>
+  </div>
+</div>
+
+<div class="modal" id="auth-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="auth-login-view">
+      <h3 style="margin-bottom: 16px;">👤 Вход в профиль</h3>
+      <input id="login-phone" type="tel" placeholder="Логин (цифры)" autocomplete="off" style="text-align:left;">
+      <button class="btn-primary" onclick="startPinEntry('login')">Далее</button>
+      <p style="margin-top: 16px; font-size: 14px; color: var(--muted);">Нет аккаунта? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="showRegisterView()">Зарегистрироваться</span></p>
+      <p style="margin-top: 10px; font-size: 12px; color: var(--danger); cursor: pointer;" onclick="showForgotPassword()">Забыли пароль?</p>
+    </div>
+    <div id="auth-register-view" class="hidden">
+      <h3 style="margin-bottom: 16px;">📝 Создать аккаунт</h3>
+      <input id="reg-phone" type="tel" placeholder="Логин (цифры)" autocomplete="off" style="text-align:left;">
+      <div style="font-size: 12px; color: var(--muted); margin-top: -8px; margin-bottom: 12px; text-align: left;">Придумайте любой номер от 4 до 12 цифр</div>
+      <input id="reg-name" placeholder="Ваш никнейм (виден всем)" autocomplete="off" style="text-align:left;">
+      <button class="btn-primary" onclick="startPinEntry('register')">Придумать ПИН-код</button>
+      <p style="margin-top: 16px; font-size: 14px; color: var(--muted);">Уже есть аккаунт? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="showLoginView()">Войти</span></p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="pin-entry-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 id="pin-title" style="margin-bottom: 8px;">Введите ПИН</h3>
+    <p id="pin-subtitle" style="font-size: 13px; color: var(--muted); margin-bottom: 10px;"></p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div><div class="pin-dot" id="dot-4"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-pad-btn" onclick="enterPin('1')">1</button><button class="pin-pad-btn" onclick="enterPin('2')">2</button><button class="pin-pad-btn" onclick="enterPin('3')">3</button>
+      <button class="pin-pad-btn" onclick="enterPin('4')">4</button><button class="pin-pad-btn" onclick="enterPin('5')">5</button><button class="pin-pad-btn" onclick="enterPin('6')">6</button>
+      <button class="pin-pad-btn" onclick="enterPin('7')">7</button><button class="pin-pad-btn" onclick="enterPin('8')">8</button><button class="pin-pad-btn" onclick="enterPin('9')">9</button>
+      <button class="pin-pad-btn action" onclick="document.getElementById('pin-entry-modal').style.display='none'">✕</button>
+      <button class="pin-pad-btn" onclick="enterPin('0')">0</button>
+      <button class="pin-pad-btn action" onclick="deletePin()">⌫</button>
+    </div>
+    <div id="pin-error" style="color: var(--danger); font-size: 13px; margin-top: 15px; height: 20px;"></div>
+  </div>
+</div>
+
+<div class="modal" id="success-modal" onclick="this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom: 12px; color: var(--accent);">🎉 Забронировано!</h3>
+    <div style="background: #f0fdf4; border: 2px dashed #10b981; padding: 16px; border-radius: 12px; font-size: 24px; font-weight: 900; color: #047857; margin-bottom: 12px;" onclick="copyCode(this.innerText.replace(' 📋', ''))">
+      <span id="success-code">С-0000</span> 📋
+    </div>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Нажмите, чтобы скопировать.</p>
+    <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 13px; color: #92400e; text-align: left;">
+      <b>Внимание!</b><br>1. Переведите деньги.<br>2. Укажите код в комментарии.<br>3. Нажмите "Я оплатил" в "Профиле".
+    </div>
+    <button class="btn-primary" style="margin-top: 16px;" onclick="document.getElementById('success-modal').style.display='none'">Понятно</button>
+  </div>
+</div>
+
+<div class="container" id="app">
+  <div class="header fade-in">
+    <h1><span>🍀</span> Твой Шанс</h1>
+    <p>Испытай удачу — забери приз!</p>
+  </div>
+
+  <div id="view-main" class="fade-in">
+    
+    <div style="margin-bottom: 16px; position: relative;">
+      <button id="btn-profile" class="btn-primary" style="font-size: 15px;" onclick="handleProfileClick()">👤 Войти в профиль</button>
+      <span id="profile-notification-badge" class="hidden" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; font-size: 12px;">1</span>
+    </div>
+
+    <div class="tabs-container">
+      <div class="tab-header" id="header-active" onclick="toggleTab('active')">
+        <span>Активные (0)</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div id="grid-active" class="tab-content active"></div>
+
+      <div class="tab-header" id="header-finished" onclick="toggleTab('finished')" style="margin-top: 8px;">
+        <span>Завершенные</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div id="grid-finished" class="tab-content"></div>
+    </div>
+    
+    <div id="admin-panel" class="card hidden" style="margin-top: 20px;">
+      <h2 style="margin-bottom: 12px; font-size: 18px;">Управление <span style="background:#f59e0b; color:#fff; padding:2px 6px; border-radius:6px; font-size:10px;">ADMIN</span></h2>
+      <button class="btn-primary" onclick="switchView('create')" style="margin-bottom: 8px;">➕ Создать розыгрыш</button>
+      
+      <button class="btn-warning" style="margin-bottom: 8px;" onclick="toggleAdminSection('pending')">⏳ Ожидают оплаты <span id="pendingCount"></span></button>
+      <div id="pendingList" class="hidden" style="margin-bottom: 8px; background:#f8fafc; border-radius:10px; padding:10px;"></div>
+
+      <button class="btn-warning" style="margin-bottom: 8px;" onclick="toggleAdminSection('review')">📝 На проверке (<span id="reviewCount">0</span>)</button>
+      <div id="reviewList" class="hidden" style="margin-bottom: 8px; background:#f8fafc; border-radius:10px; padding:10px;"></div>
+      
+      <button class="btn-outline" onclick="toggleAdminSection('players')" style="margin-bottom: 8px;">👥 Все игроки (база)</button>
+      <div id="playersList" class="hidden" style="margin-bottom: 8px;">
+        <input type="text" id="admin-search" placeholder="🔍 Поиск по имени, телефону или коду..." oninput="renderPlayersDatabase()">
+        <div id="players-list-container"></div>
+      </div>
+      
+      <button class="btn-outline" onclick="toggleAdminRole()">Выйти из админа</button>
+    </div>
+    
+    <div class="bottom-links">
+      <span onclick="document.getElementById('rules-modal').style.display='flex'">📖 Как играть и правила</span>
+      <span onclick="shareGame()">🔗 Поделиться игрой с друзьями</span>
+      <span id="adminLoginBtn" onclick="showAdminLogin()">🔐 Вход для организатора</span>
+      <span onclick="document.getElementById('support-modal').style.display='flex'">💬 Служба поддержки</span>
+    </div>
+  </div>
+
+  <div id="view-history" class="hidden fade-in">
+    <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← На главную</button>
+    
+    <div id="profile-display" class="profile-info-card fade-in hidden">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div style="font-size: 12px; opacity: 0.8;">Логин: <span id="profile-phone-display"></span></div>
+          <h2 id="profile-display-name" style="display:flex; align-items:center; gap:8px;">
+            <span id="profile-name-text"></span>
+            <span style="cursor:pointer; font-size:18px;" onclick="editName()">✏️</span>
+          </h2>
+        </div>
+        <button class="btn-outline btn-sm" style="border-color:white; padding:4px 10px; font-size:12px;" onclick="logout()">Выйти</button>
+      </div>
+      <p style="margin-top: 10px; font-size: 14px;">Личный код для оплаты:</p>
+      <div class="profile-code-badge" onclick="copyCode(document.getElementById('profile-display-code').innerText.replace(' 📋', ''))">
+        <span id="profile-display-code"></span> 📋
+      </div>
+    </div>
+
+    <h2 style="font-size: 20px; margin-bottom: 12px;">История броней</h2>
+    <div id="my-history-active"></div>
+    
+    <div style="text-align: center; margin-top: 40px; padding-bottom: 20px;">
+        <span onclick="deleteMyAccount()" style="color: var(--danger); font-size: 13px; cursor: pointer; text-decoration: underline; opacity: 0.7;">Удалить аккаунт</span>
+    </div>
+  </div>
+</div>
+<div id="view-raffle" class="hidden fade-in">
+    <button class="btn-outline btn-sm" style="margin-bottom: 12px;" onclick="switchView('main')">← Назад</button>
+    
+    <div class="card hidden" id="draw-block" style="background: #fffbeb;">
+      <button id="draw-btn" class="btn-warning hidden" onclick="startDraw()">🎲 Крутить рулетку</button>
+      <div id="draw-area" class="hidden" style="text-align: center;">
+        <p id="draw-title" style="font-weight: bold;">Розыгрыш...</p>
+        <div id="rolling-num" style="font-size: 64px; font-weight: 900; color: var(--accent);"></div>
+      </div>
+      <div id="winners-list"></div>
+    </div>
+    
+    <div class="card" id="raffle-info">
+      <img id="r-img" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: none;" onclick="openImageModal(this.src)">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+        <h2 id="r-name" style="font-size: 22px; font-weight: 800;"></h2>
+        <span id="r-unique-code" style="font-size: 13px; font-weight: 700; color: var(--muted); background: #e2e8f0; padding: 4px 8px; border-radius: 6px; white-space: nowrap;"></span>
+      </div>
+      <p id="r-prizes-info" style="font-size: 15px; font-weight: 700; color: #7c3aed; margin-bottom: 8px;"></p>
+      <p id="r-stats" style="color: var(--muted); font-size: 14px; margin-bottom: 10px;"></p>
+      <div id="r-req-block" style="background: #f0fdf4; padding: 10px; border-radius: 8px; display: none;">
+        <strong>Реквизиты:</strong> <span id="r-req-text"></span>
+      </div>
+      <div id="admin-publish-block" class="hidden" style="margin-top:12px;">
+        <button class="btn-success" onclick="publishRaffle()">✅ Опубликовать</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2 style="margin-bottom: 12px;">🎟 Билеты</h2>
+      
+      <div id="guest-form" class="hidden">
+        <div id="guest-need-login" class="hidden" style="text-align:center; padding: 15px; background:#f8fafc; border-radius:12px;">
+          <p style="margin-bottom: 10px; font-weight: 600;">Чтобы забронировать билеты, войдите в профиль</p>
+          <button class="btn-primary" onclick="handleProfileClick()">👤 Войти в профиль</button>
+        </div>
+        <div id="guest-can-book" class="hidden">
+          <input id="g-name" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <input id="g-random" type="number" placeholder="Случайных N" style="flex: 1;">
+            <button class="btn-outline" style="flex: 1;" onclick="selectRandomForGuest()">Выбрать N</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="admin-form" class="hidden" style="position:relative;">
+        <input id="a-search" placeholder="Поиск игрока (Имя, Код, Тел)" oninput="searchAdminPlayer()">
+        <div id="admin-search-results" class="hidden" style="background:#fff; border:1px solid #ccc; border-radius:8px; max-height:150px; overflow-y:auto; margin-bottom:10px; position:absolute; z-index:10; width:100%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></div>
+        <input type="hidden" id="a-name" placeholder="Имя участника">
+        
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <input id="a-random" type="number" placeholder="Случайных N" style="flex: 1;">
+          <button class="btn-outline" style="flex: 1;" onclick="selectRandomForAdmin()">Выбрать N</button>
+        </div>
+        
+        <button class="btn-success" style="margin-bottom: 8px;" onclick="adminBook('confirmed')">🎁 Купить и оплатить (сразу)</button>
+      </div>
+      
+      <div class="tickets-grid" id="tickets-container"></div>
+      
+      <div id="checkout" class="hidden" style="background: #f8fafc; padding: 12px; border-radius: 10px;">
+        <p>Выбрано: <strong id="c-count">0</strong> шт.</p>
+        <p>К оплате: <strong id="c-sum">0</strong> ₽</p>
+        <p style="font-size: 13px;">Реквизиты: <span id="c-req-text"></span></p>
+        <button class="btn-success" style="margin-top:10px;" onclick="bookTickets()" id="btn-book">Забронировать</button>
+      </div>
+      
+      <div id="participants-block" style="margin-top: 20px;">
+        <h3 style="font-size: 16px; margin-bottom: 10px;">👥 Участники</h3>
+        <div id="participants-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-create" class="hidden fade-in">
+    <button class="btn-outline btn-sm" style="margin-bottom: 16px;" onclick="switchView('main')">← Назад</button>
+    <div class="card">
+      <h2 style="margin-bottom: 16px; font-size: 20px;">Новый розыгрыш</h2>
+      <input id="c-name" placeholder="Название приза" autocomplete="off">
+      <div style="display: flex; gap: 8px;">
+        <input id="c-tickets" type="number" inputmode="numeric" placeholder="Кол-во билетов" oninput="updateCalc()">
+        <input id="c-price" type="number" inputmode="numeric" placeholder="Цена (₽)" oninput="updateCalc()">
+      </div>
+      <div id="calc-preview" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: 14px; color: #166534; display: flex; justify-content: space-between; align-items: center;">
+        <span>💰 Итого к сбору:</span>
+        <strong id="calc-total" style="font-size: 16px;">0 ₽</strong>
+      </div>
+      <select id="c-prizes"><option value="1">1 приз</option><option value="2">2 приза</option><option value="3">3 приза</option></select>
+      <input id="c-req" placeholder="Реквизиты (Сбер 8900...)" autocomplete="off">
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px;">Фото приза:</p>
+      <label class="btn-outline" style="text-align: center; padding: 14px; border-radius: 12px; cursor: pointer; display: block; font-size: 14px;">
+        📁 Выбрать из галереи
+        <input type="file" id="c-img-file" accept="image/*" onchange="handleImageUpload(event)" style="display: none;">
+      </label>
+      <img id="preview-img" alt="Превью" style="width: 100%; height: 140px; object-fit: cover; border-radius: 10px; margin-top: 12px; display: none; border: 2px solid var(--accent);">
+      <button class="btn-primary" style="margin-top: 16px;" onclick="createRaffle()" id="btn-create-raffle">Создать и на проверку</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('main')">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Главная
+    </div>
+    <div class="nav-item" onclick="forceRefresh()">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Обновить
+    </div>
+  </div>
+</div>
+<script>
+const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const ADMIN_PASSWORD = 'RjhJkM01200111';
+const ICONS = ['⭐', '✅', '💎', '🔥', '🍀', '🎯', '🎲', '👑', '🚀', '💡'];
+const BAD_WORDS = ['хуй', 'хуя', 'пизд', 'бляд', 'ебал', 'ебать', 'мразь', 'шлюх', 'сука', 'пидор', 'гандон', 'долбоеб', 'мудак', 'елда', 'елдак', 'залуп', 'шлюха', 'дроч', 'гомик', 'педик'];
+const GAME_URL = 'https://4gwmj69s25-ctrl.github.io/tvoy-shans/';
+
+let raffles = [], currentRaffle = null, selectedTickets = new Set();
+let isAdmin = false, isSubmitting = false;
+let uploadedImageBase64 = "";
+let myProfile = JSON.parse(localStorage.getItem('myProfile')) || null;
+let lastUserStatuses = JSON.parse(localStorage.getItem('lastUserStatuses')) || {};
+let tempAdminPlayer = null;
+let activeAdminSection = null;
+let timerInterval = null;
+let authSource = 'main'; 
+
+function showToast(message, type = 'default') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerText = message;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+function toggleLoader(show) { document.getElementById('global-loader').classList.toggle('hidden', !show); }
+function copyCode(code) { navigator.clipboard.writeText(code).then(() => showToast('Скопировано!', 'success')); }
+function checkBadWords(text) { return BAD_WORDS.some(word => text.toLowerCase().includes(word)); }
+
+function shareGame() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'Твой Шанс',
+      text: 'Испытай удачу — забери приз!',
+      url: GAME_URL
+    }).catch(console.error);
+  } else {
+    copyCode(GAME_URL);
+  }
+}
+
+function generateCode(name) {
+  const letter = name.trim()[0].toUpperCase();
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `${letter}-${random}`;
+}
+
+function getIconForRaffle(code, raffleId) {
+  if (!code) return '';
+  const combined = code + String(raffleId);
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) hash = combined.charCodeAt(i) + ((hash << 5) - hash);
+  return ICONS[Math.abs(hash) % ICONS.length];
+}
+
+function getGameIconForPlayer(raffle, playerCode) {
+  const existing = (raffle.soldTickets || []).filter(t => t.bookingCode === playerCode);
+  for (let t of existing) if (t.gameIcon) return t.gameIcon;
+  return getIconForRaffle(playerCode, raffle.id);
+}
+
+function updateCalc() {
+  const t = parseInt(document.getElementById('c-tickets').value) || 0;
+  const price = parseInt(document.getElementById('c-price').value) || 0;
+  const el = document.getElementById('calc-total');
+  if (el) el.innerText = (t * price) + ' ₽';
+}
+
+function updateNotificationBadge() {
+  if (!myProfile || isAdmin) {
+    document.getElementById('profile-notification-badge').classList.add('hidden');
+    return;
+  }
+  let hasNew = false;
+  raffles.forEach(r => {
+    const myTickets = (r.soldTickets || []).filter(t => t.bookingCode === myProfile.code && t.status !== 'rejected');
+    if (myTickets.length > 0) {
+      const statuses = myTickets.map(t => t.status + (t.orderId || '')).sort().join(',');
+      if (lastUserStatuses[r.id] !== statuses) hasNew = true;
+    }
+  });
+  const badge = document.getElementById('profile-notification-badge');
+  if (hasNew) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+}
+
+function markNotificationsRead() {
+  if (!myProfile || isAdmin) return;
+  raffles.forEach(r => {
+    const myTickets = (r.soldTickets || []).filter(t => t.bookingCode === myProfile.code && t.status !== 'rejected');
+    if (myTickets.length > 0) lastUserStatuses[r.id] = myTickets.map(t => t.status + (t.orderId || '')).sort().join(',');
+  });
+  localStorage.setItem('lastUserStatuses', JSON.stringify(lastUserStatuses));
+  updateNotificationBadge();
+}
+
+window.onload = () => {
+  checkAdminStatus();
+  updateAuthUI();
+  loadRaffles();
+  setInterval(() => { checkExpiredBookings(); updateNotificationBadge(); }, 30000);
+};
+function checkAdminStatus() {
+  isAdmin = localStorage.getItem('isAdmin') === 'true';
+  document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
+  document.getElementById('adminLoginBtn').classList.toggle('hidden', isAdmin);
+  const profileBtn = document.getElementById('btn-profile');
+  if (profileBtn) profileBtn.style.display = isAdmin ? 'none' : 'block';
+}
+
+function showAdminLogin() {
+  const pwd = prompt('Пароль администратора:');
+  if (pwd === ADMIN_PASSWORD) {
+    isAdmin = true; 
+    localStorage.setItem('isAdmin', 'true');
+    
+    myProfile = null; 
+    localStorage.removeItem('myProfile'); 
+    updateAuthUI();
+
+    checkAdminStatus(); 
+    loadRaffles(); 
+    showToast('Вы вошли как администратор', 'success');
+  } else if (pwd !== null) showToast('Неверный пароль', 'error');
+}
+
+function toggleAdminRole() {
+  if (confirm('Выйти из админа?')) {
+    isAdmin = false; 
+    localStorage.removeItem('isAdmin');
+    checkAdminStatus(); 
+    
+    myProfile = null;
+    localStorage.removeItem('myProfile');
+    updateAuthUI();
+    
+    switchView('main');
+    showToast('Вы вышли из режима админа');
+  }
+}
+
+function switchView(view) {
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('view-' + view).classList.remove('hidden');
+  localStorage.setItem('lastView', view);
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if(view === 'main') document.querySelectorAll('.nav-item')[0].classList.add('active');
+  
+  if (view === 'history') { renderMyBookings(); markNotificationsRead(); }
+  if (view === 'main') loadRaffles();
+}
+
+function toggleTab(tab) {
+  const activeHeader = document.getElementById('header-active');
+  const finishedHeader = document.getElementById('header-finished');
+  const activeGrid = document.getElementById('grid-active');
+  const finishedGrid = document.getElementById('grid-finished');
+
+  if (tab === 'active') {
+    const isOpen = activeGrid.classList.contains('active');
+    activeGrid.classList.toggle('active', !isOpen);
+    activeHeader.querySelector('.arrow').innerText = isOpen ? '▼' : '▲';
+  } else {
+    const isOpen = finishedGrid.classList.contains('active');
+    finishedGrid.classList.toggle('active', !isOpen);
+    finishedHeader.querySelector('.arrow').innerText = isOpen ? '▼' : '▲';
+  }
+}
+
+function forceRefresh() {
+  showToast('Загрузка...');
+  loadRaffles().then(() => showToast('Обновлено!', 'success'));
+}
+
+async function loadRaffles() {
+  try {
+    const { data, error } = await supabaseClient.from('raffles').select('id, data, created_at').order('created_at', { ascending: false });
+    if (error) throw error;
+    raffles = (data || []).map(item => ({ ...item.data, id: item.id, created_at: item.created_at })).filter(r => r.prizeName);
+    
+    const active = raffles.filter(r => r.isPublished && !r.isDrawn);
+    const finished = raffles.filter(r => r.isPublished && r.isDrawn);
+    
+    document.getElementById('header-active').querySelector('span').innerText = `Активные (${active.length})`;
+    renderGrid('active', active);
+    renderGrid('finished', finished);
+    
+    if (isAdmin) updateAdminCounters();
+    updateNotificationBadge();
+  } catch (err) { console.error(err); }
+}
+
+function renderGrid(tab, list) {
+  const container = document.getElementById('grid-' + tab);
+  container.innerHTML = list.length === 0 ? '<p style="text-align:center; color:var(--muted); margin-top:20px;">Пусто</p>' : '';
+  
+  list.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'game-card';
+    el.onclick = () => openRaffle(r.id);
+    
+    let imgHtml = r.imageUrl ? `<img src="${r.imageUrl}">` : '';
+    
+    const total = r.totalTickets;
+    const sold = (r.soldTickets || []).filter(t => t.status !== 'rejected').length;
+    const free = total - sold;
+    
+    let myTicketsHtml = '';
+    if (myProfile) {
+      const myT = (r.soldTickets || []).filter(t => t.bookingCode === myProfile.code && t.status !== 'rejected').map(t => t.num);
+      if (myT.length > 0) myTicketsHtml = `<div class="my-tickets-badge">🎟 Мои: ${myT.join(', ')}</div>`;
+    }
+    
+    let dateHtml = '';
+    if (r.created_at) {
+       const d = new Date(r.created_at);
+       dateHtml = `<div class="game-date">Выложено: ${d.toLocaleDateString('ru-RU')} в ${d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}</div>`;
+    }
+
+    let deleteBtn = isAdmin ? `<button class="btn-danger btn-sm" style="position:absolute; top:8px; right:8px; padding:4px 8px; z-index:10; width:auto; font-size:12px; border-radius:6px;" onclick="event.stopPropagation(); deleteRaffle('${r.id}')">✕</button>` : '';
+    let uniqueCodeHtml = r.uniqueCode ? `<span class="game-code">#${r.uniqueCode}</span>` : '';
+    
+    el.innerHTML = `
+      ${deleteBtn}
+      ${imgHtml}
+      <div class="game-info">
+        <div class="game-title">${r.prizeName} ${uniqueCodeHtml}</div>
+        <div class="game-stats">Всего: ${total} | Осталось: ${free}</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <div class="badge badge-prizes">🏆 Победителей: ${r.prizesCount || 1}</div>
+        </div>
+        ${myTicketsHtml}
+        <div class="game-price-row">
+          <div class="game-price">${r.ticketPrice} ₽</div>
+          ${dateHtml}
+        </div>
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+let currentPinAction = '', enteredPin = '', tempRegData = {};
+
+function handleProfileClick() {
+  if (myProfile) switchView('history');
+  else { 
+    const currentRaffleView = document.getElementById('view-raffle');
+    authSource = (currentRaffleView && !currentRaffleView.classList.contains('hidden')) ? 'raffle' : 'main';
+    showLoginView(); 
+    document.getElementById('auth-modal').style.display = 'flex'; 
+  }
+}
+
+function showLoginView() {
+  document.getElementById('auth-login-view').classList.remove('hidden');
+  document.getElementById('auth-register-view').classList.add('hidden');
+}
+
+function showRegisterView() {
+  document.getElementById('auth-login-view').classList.add('hidden');
+  document.getElementById('auth-register-view').classList.remove('hidden');
+}
+
+function showForgotPassword() {
+  alert("Если вы забыли ПИН-код, напишите в службу поддержки (ВК). Организатор посмотрит ваш ПИН в базе и поможет восстановить доступ.");
+}
+
+function startPinEntry(action) {
+  const phone = action === 'login' ? document.getElementById('login-phone').value.trim() : document.getElementById('reg-phone').value.trim();
+  if (!phone) return showToast('Введите логин!', 'error');
+  if (phone.length < 4 || phone.length > 12) return showToast('Логин должен быть от 4 до 12 цифр!', 'error');
+  
+  currentPinAction = action;
+  
+  if (action === 'register') {
+    const name = document.getElementById('reg-name').value.trim();
+    if (!name) return showToast('Введите имя!', 'error');
+    if (checkBadWords(name)) return showToast('Имя содержит мат!', 'error');
+    tempRegData = { phone, name, step: 1, pin: '' };
+    document.getElementById('pin-title').innerText = 'Придумайте ПИН';
+  } else {
+    document.getElementById('pin-title').innerText = 'Введите ПИН';
+  }
+  enteredPin = ''; updatePinDots(); document.getElementById('pin-error').innerText = '';
+  document.getElementById('auth-modal').style.display = 'none';
+  document.getElementById('pin-entry-modal').style.display = 'flex';
+}
+
+function enterPin(num) {
+  if (enteredPin.length < 4) {
+    enteredPin += num; updatePinDots();
+    if (enteredPin.length === 4) setTimeout(processPin, 300);
+  }
+}
+
+function deletePin() { enteredPin = enteredPin.slice(0, -1); updatePinDots(); }
+function updatePinDots() { for (let i = 1; i <= 4; i++) document.getElementById('dot-' + i).classList.toggle('filled', i <= enteredPin.length); }
+
+async function processPin() {
+  const phone = currentPinAction === 'login' ? document.getElementById('login-phone').value.trim() : tempRegData.phone;
+  if (currentPinAction === 'register') {
+    if (tempRegData.step === 1) {
+      tempRegData.pin = enteredPin; tempRegData.step = 2;
+      document.getElementById('pin-title').innerText = 'Повторите ПИН';
+      enteredPin = ''; updatePinDots(); return;
+    }
+    if (enteredPin !== tempRegData.pin) {
+      document.getElementById('pin-error').innerText = 'ПИН не совпадает!';
+      tempRegData.step = 1; enteredPin = ''; updatePinDots();
+      document.getElementById('pin-title').innerText = 'Придумайте ПИН'; return;
+    }
+    const { data: exist } = await supabaseClient.from('users').select('phone').eq('phone', tempRegData.phone);
+    if (exist?.length > 0) return document.getElementById('pin-error').innerText = 'Этот логин занят!';
+    
+    const newCode = generateCode(tempRegData.name);
+    await supabaseClient.from('users').insert([{ phone: tempRegData.phone, name: tempRegData.name, pin: tempRegData.pin, game_code: newCode }]);
+    
+    myProfile = { phone: tempRegData.phone, name: tempRegData.name, pin: tempRegData.pin, code: newCode };
+    localStorage.setItem('myProfile', JSON.stringify(myProfile));
+    document.getElementById('pin-entry-modal').style.display = 'none';
+    showToast('Аккаунт создан!', 'success');
+    updateAuthUI();
+    
+    if (authSource === 'raffle') { if (currentRaffle) openRaffle(currentRaffle.id); } 
+    else { switchView('main'); }
+    
+  } else {
+    const { data } = await supabaseClient.from('users').select('*').eq('phone', phone).eq('pin', enteredPin).single();
+    if (data) {
+      myProfile = { phone: data.phone, name: data.name, pin: data.pin, code: data.game_code };
+      localStorage.setItem('myProfile', JSON.stringify(myProfile));
+      document.getElementById('pin-entry-modal').style.display = 'none';
+      showToast('Вход выполнен!', 'success');
+      updateAuthUI();
+      
+      if (authSource === 'raffle') { if (currentRaffle) openRaffle(currentRaffle.id); } 
+      else { switchView('main'); }
+      
+    } else {
+      document.getElementById('pin-error').innerText = 'Неверный логин или ПИН!';
+      enteredPin = ''; updatePinDots();
+    }
+  }
+}
+
+function updateAuthUI() {
+  const btn = document.getElementById('btn-profile');
+  if (myProfile) {
+    btn.innerHTML = `👤 Мой профиль`;
+    document.getElementById('profile-display').classList.remove('hidden');
+    document.getElementById('profile-phone-display').innerText = myProfile.phone;
+    document.getElementById('profile-name-text').innerText = myProfile.name;
+    document.getElementById('profile-display-code').innerText = myProfile.code;
+  } else {
+    btn.innerHTML = `👤 Войти в профиль`;
+    document.getElementById('profile-display').classList.add('hidden');
+  }
+}
+
+function logout() {
+  myProfile = null; localStorage.removeItem('myProfile');
+  updateAuthUI(); switchView('main');
+}
+  async function editName() {
+  const newName = prompt('Введите новое имя:', myProfile.name);
+  if (!newName || newName === myProfile.name) return;
+  if (checkBadWords(newName)) return showToast('Имя содержит мат!', 'error');
+  if (newName.length > 15) return showToast('Слишком длинное имя', 'error');
+  
+  const lastChangeKey = 'nameChangeCount_' + myProfile.phone;
+  let changes = JSON.parse(localStorage.getItem(lastChangeKey)) || { count: 0, time: Date.now() };
+  
+  if (Date.now() - changes.time > 24 * 60 * 60 * 1000) { changes = { count: 0, time: Date.now() }; }
+  if (changes.count >= 3) return showToast('Вы сменили имя 3 раза. Следующая попытка через 24 часа.', 'error');
+
+  await supabaseClient.from('users').update({ name: newName }).eq('phone', myProfile.phone);
+  myProfile.name = newName;
+  localStorage.setItem('myProfile', JSON.stringify(myProfile));
+  
+  changes.count += 1;
+  localStorage.setItem(lastChangeKey, JSON.stringify(changes));
+  
+  updateAuthUI(); 
+  showToast(`Имя изменено! Осталось попыток: ${3 - changes.count}`, 'success');
+}
+
+async function deleteMyAccount() {
+  if (!confirm('ВНИМАНИЕ! Вы точно хотите удалить аккаунт? ВСЕ ваши билеты сгорят, места освободятся. Отменить это будет невозможно!')) return;
+  
+  await supabaseClient.from('users').delete().eq('phone', myProfile.phone);
+  
+  for (let r of raffles) {
+    if (!r.soldTickets) continue;
+    const initLen = r.soldTickets.length;
+    r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== myProfile.code);
+    if (r.soldTickets.length !== initLen) {
+      await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+    }
+  }
+  
+  localStorage.removeItem('myProfile');
+  myProfile = null;
+  updateAuthUI();
+  switchView('main');
+  loadRaffles();
+  showToast('Ваш аккаунт полностью удален', 'success');
+}
+
+async function openRaffle(id) {
+  toggleLoader(true);
+  if (timerInterval) clearInterval(timerInterval);
+  try {
+    const { data } = await supabaseClient.from('raffles').select('*').eq('id', id).single();
+    currentRaffle = { ...data.data, id: data.id, created_at: data.created_at };
+    selectedTickets.clear();
+    
+    document.getElementById('r-name').innerText = currentRaffle.prizeName;
+    document.getElementById('r-unique-code').innerText = currentRaffle.uniqueCode ? `Код: #${currentRaffle.uniqueCode}` : '';
+    
+    const imgEl = document.getElementById('r-img');
+    if (currentRaffle.imageUrl) { imgEl.src = currentRaffle.imageUrl; imgEl.style.display = 'block'; } 
+    else { imgEl.style.display = 'none'; }
+    
+    const prizes = currentRaffle.prizesCount || 1;
+    let prizeWord = 'Победителей';
+    if (prizes === 1) prizeWord = 'Победитель';
+    else if (prizes >= 2 && prizes <= 4) prizeWord = 'Победителя';
+    document.getElementById('r-prizes-info').innerText = `🏆 ${prizeWord}: ${prizes}`;
+    
+    document.getElementById('r-stats').innerText = `Цена: ${currentRaffle.ticketPrice} ₽ | Продано: ${(currentRaffle.soldTickets||[]).filter(t=>t.status!=='rejected').length} / ${currentRaffle.totalTickets}`;
+    
+    const isGuest = !myProfile && !isAdmin;
+    document.getElementById('guest-form').classList.toggle('hidden', isAdmin);
+    document.getElementById('admin-form').classList.toggle('hidden', !isAdmin);
+    document.getElementById('guest-need-login').classList.toggle('hidden', !isGuest);
+    document.getElementById('guest-can-book').classList.toggle('hidden', isGuest);
+    document.getElementById('checkout').classList.add('hidden');
+
+    if (myProfile) document.getElementById('g-name').value = myProfile.name;
+    
+    renderTickets(); renderParticipants();
+    renderWinners(currentRaffle.winnersHistory);
+    
+    const drawBlock = document.getElementById('draw-block');
+    const drawBtn = document.getElementById('draw-btn');
+    const drawArea = document.getElementById('draw-area');
+    drawArea.classList.add('hidden');
+    if (isAdmin && currentRaffle.isPublished && !currentRaffle.isDrawn) {
+      drawBlock.classList.remove('hidden');
+      const confirmedCount = (currentRaffle.soldTickets || []).filter(t => t.status === 'confirmed').length;
+      if (confirmedCount < currentRaffle.totalTickets) drawBtn.classList.add('hidden');
+      else drawBtn.classList.remove('hidden');
+    } else if (currentRaffle.isDrawn) {
+      drawBlock.classList.remove('hidden');
+      drawBtn.classList.add('hidden');
+    } else {
+      drawBlock.classList.add('hidden');
+    }
+    
+    const reqBlock = document.getElementById('r-req-block');
+    if (currentRaffle.paymentDetails) { reqBlock.style.display = 'block'; document.getElementById('r-req-text').innerText = currentRaffle.paymentDetails; }
+    else reqBlock.style.display = 'none';
+    
+    document.getElementById('admin-publish-block').classList.toggle('hidden', !(isAdmin && !currentRaffle.isPublished));
+    
+    switchView('raffle');
+  } catch (err) { showToast('Ошибка загрузки', 'error'); }
+  finally { toggleLoader(false); }
+}
+
+function renderTickets() {
+  const grid = document.getElementById('tickets-container');
+  grid.innerHTML = '';
+  const taken = new Map();
+  (currentRaffle.soldTickets || []).forEach(t => { if(t.status !== 'rejected') taken.set(t.num, t); });
+
+  for (let i = 1; i <= currentRaffle.totalTickets; i++) {
+    const el = document.createElement('div');
+    el.className = 'ticket';
+    el.innerText = i;
+    const t = taken.get(i);
+    if (t) {
+      const icon = t.gameIcon || getIconForRaffle(t.bookingCode, currentRaffle.id);
+      el.innerHTML = `${i}<span class="ticket-icon">${icon}</span>`;
+      if (t.status === 'confirmed') el.classList.add('ticket-taken');
+      else if (t.status === 'waiting_admin') el.classList.add('ticket-waiting');
+      else el.classList.add('ticket-pending');
+    } else if (selectedTickets.has(i)) {
+      el.classList.add('ticket-selected');
+      el.onclick = () => { selectedTickets.delete(i); renderTickets(); };
+    } else {
+      el.classList.add('ticket-free');
+      el.onclick = () => { selectedTickets.add(i); renderTickets(); };
+    }
+    grid.appendChild(el);
+  }
+  
+  const chk = document.getElementById('checkout');
+  if (selectedTickets.size > 0 && (myProfile || isAdmin)) {
+    chk.classList.remove('hidden');
+    document.getElementById('c-count').innerText = selectedTickets.size;
+    document.getElementById('c-sum').innerText = selectedTickets.size * currentRaffle.ticketPrice;
+    document.getElementById('c-req-text').innerText = currentRaffle.paymentDetails;
+    
+    const btnBook = document.getElementById('btn-book');
+    if (isAdmin) {
+        btnBook.innerText = 'Забронировать за игроком';
+    } else {
+        btnBook.innerText = 'Забронировать';
+    }
+  } else {
+    chk.classList.add('hidden');
+  }
+}
+
+function selectRandomForGuest() {
+  const count = parseInt(document.getElementById('g-random').value);
+  if (!count) return;
+  const free = [];
+  for (let i = 1; i <= currentRaffle.totalTickets; i++) {
+    if (!(currentRaffle.soldTickets || []).some(t => t.num === i && t.status !== 'rejected')) free.push(i);
+  }
+  selectedTickets.clear();
+  free.sort(() => Math.random() - 0.5).slice(0, count).forEach(n => selectedTickets.add(n));
+  renderTickets();
+}
+
+function selectRandomForAdmin() {
+  const count = parseInt(document.getElementById('a-random').value);
+  if (!count) return;
+  const free = [];
+  for (let i = 1; i <= currentRaffle.totalTickets; i++) {
+    if (!(currentRaffle.soldTickets || []).some(t => t.num === i && t.status !== 'rejected')) free.push(i);
+  }
+  selectedTickets.clear();
+  free.sort(() => Math.random() - 0.5).slice(0, count).forEach(n => selectedTickets.add(n));
+  renderTickets();
+}
+
+async function bookTickets() {
+  if (selectedTickets.size === 0) return;
+  
+  if (isAdmin) {
+      if (!tempAdminPlayer) return showToast('Выберите игрока из списка!', 'error');
+      const btn = document.getElementById('btn-book');
+      btn.disabled = true; btn.innerText = 'Бронь...';
+      
+      try {
+        const { data: fresh } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
+        let r = { ...fresh.data, id: fresh.id };
+        if (!r.soldTickets) r.soldTickets = [];
+        for (let num of selectedTickets) {
+          if (r.soldTickets.some(t => t.num === num && t.status !== 'rejected')) throw new Error(`Билет ${num} уже занят!`);
+        }
+        const gameIcon = getGameIconForPlayer(r, tempAdminPlayer.game_code);
+        const expireAt = Date.now() + 5 * 60 * 1000;
+        const orderId = 'ORD-' + Date.now();
+        
+        const inserts = Array.from(selectedTickets).map(n => ({ 
+            num: n, owner: tempAdminPlayer.name, status: 'pending', expireAt, 
+            bookingCode: tempAdminPlayer.game_code, pin: tempAdminPlayer.pin, gameIcon, orderId, isAdminBooked: true 
+        }));
+        
+        r.soldTickets.push(...inserts);
+        await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+        currentRaffle.soldTickets = r.soldTickets;
+        
+        selectedTickets.clear();
+        document.getElementById('a-search').value = '';
+        document.getElementById('a-random').value = '';
+        tempAdminPlayer = null;
+        renderTickets(); renderParticipants();
+        loadRaffles(); 
+        showToast(`Билеты забронированы за игроком!`, 'success');
+      } catch (err) { showToast(err.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = 'Забронировать за игроком'; }
+      
+  } else {
+      if (!myProfile) return showToast('Войдите в профиль!', 'error');
+      const btn = document.getElementById('btn-book');
+      btn.disabled = true; btn.innerText = 'Бронь...';
+      try {
+        const { data: fresh } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
+        let r = { ...fresh.data, id: fresh.id };
+        if (!r.soldTickets) r.soldTickets = [];
+        for (let num of selectedTickets) {
+          if (r.soldTickets.some(t => t.num === num && t.status !== 'rejected')) throw new Error(`Билет ${num} уже занят!`);
+        }
+        const gameIcon = getGameIconForPlayer(r, myProfile.code);
+        const expireAt = Date.now() + 5 * 60 * 1000;
+        const orderId = 'ORD-' + Date.now();
+        
+        const inserts = Array.from(selectedTickets).map(n => ({ 
+            num: n, owner: myProfile.name, status: 'pending', expireAt, 
+            bookingCode: myProfile.code, pin: myProfile.pin, gameIcon, orderId
+        }));
+        
+        r.soldTickets.push(...inserts);
+        await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+        currentRaffle.soldTickets = r.soldTickets;
+        selectedTickets.clear();
+        renderTickets(); renderParticipants();
+        
+        document.getElementById('success-code').innerText = myProfile.code;
+        document.getElementById('success-modal').style.display = 'flex';
+        updateNotificationBadge();
+      } catch (err) { showToast(err.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = 'Забронировать'; }
+  }
+}
+
+function renderMyBookings() {
+  const container = document.getElementById('my-history-active');
+  container.innerHTML = '';
+  if (!myProfile) return;
+
+  let rafflesWithData = [];
+
+  raffles.forEach(r => {
+    const myTickets = (r.soldTickets || []).filter(t => t.bookingCode === myProfile.code);
+    if (myTickets.length === 0) return;
+
+    const hasPending = myTickets.some(t => t.status === 'pending');
+    const hasWaiting = myTickets.some(t => t.status === 'waiting_admin');
+    const isActive = hasPending || hasWaiting;
+    
+    rafflesWithData.push({ r, myTickets, isActive });
+  });
+
+  rafflesWithData.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0));
+
+  rafflesWithData.forEach((data, index) => {
+    const { r, myTickets, isActive } = data;
+    const groupedByOrder = {};
+    
+    myTickets.forEach(t => {
+        const orderId = t.orderId || 'legacy';
+        if (!groupedByOrder[orderId]) groupedByOrder[orderId] = [];
+        groupedByOrder[orderId].push(t);
+    });
+
+    let detailsHtml = `<div class="accordion-content ${isActive ? 'active' : ''}" id="acc-content-${r.id}">`;
+    
+    const sortedOrders = Object.keys(groupedByOrder).sort((a, b) => {
+        if (a === 'legacy') return 1;
+        if (b === 'legacy') return -1;
+        return b.localeCompare(a);
+    });
+
+    sortedOrders.forEach(orderId => {
+        const tickets = groupedByOrder[orderId];
+        const pending = tickets.filter(t => t.status === 'pending');
+        const waiting = tickets.filter(t => t.status === 'waiting_admin');
+        const confirmed = tickets.filter(t => t.status === 'confirmed');
+        const rejected = tickets.filter(t => t.status === 'rejected');
+        
+        let orderHtml = `<div class="order-block">`;
+        if (orderId !== 'legacy') {
+            orderHtml += `<div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Заказ #${orderId.split('-')[1].slice(-4)}</div>`;
+        }
+
+        if (confirmed.length > 0) {
+          const adminPaid = confirmed.some(t => t.isAdminBooked);
+          const title = adminPaid ? '<b>🎁 Оплачено администратором</b>' : '<b>✅ Оплачено</b>';
+          orderHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; color:#166534;">
+            ${title}<br>Билеты: <b>${confirmed.map(t=>t.num).join(', ')}</b><br>
+            <small>Статус: подтверждено</small>
+          </div>`;
+        }
+        
+        if (waiting.length > 0) {
+          orderHtml += `<div style="background:#e0e7ff; padding:10px; border-radius:8px; margin-bottom:8px; color:#3730a3;">
+            <b>📩 На проверке</b><br>Билеты: <b>${waiting.map(t=>t.num).join(', ')}</b><br>
+            <small>Ожидайте подтверждения администратора</small>
+          </div>`;
+        }
+        
+        if (pending.length > 0) {
+          const minExp = Math.min(...pending.map(t => t.expireAt || 0));
+          const left = Math.max(0, Math.floor((minExp - Date.now()) / 1000));
+          if (left > 0) {
+            const isAdminBooked = pending[0].isAdminBooked ? '<div style="font-size:12px; color:var(--danger); font-weight:bold; margin-bottom:4px;">⚠️ Администратор забронировал за вас</div>' : '';
+            orderHtml += `<div style="background:#fffbeb; padding:10px; border-radius:8px; margin-bottom:8px; color:#92400e;">
+              ${isAdminBooked}
+              <b>⏳ Ожидает оплаты (${Math.floor(left/60)}:${(left%60).toString().padStart(2,'0')})</b><br>
+              Билеты: <b>${pending.map(t=>t.num).join(', ')}</b><br>
+              К оплате: <b>${pending.length * r.ticketPrice} ₽</b><br>
+              <small style="color:red;">В комментарии: ${myProfile.code}</small><br>
+              <button class="btn-success btn-sm" style="margin-top:8px; width:100%;" onclick="payBooking('${r.id}', '${orderId}')">✅ Я оплатил</button>
+              <button class="btn-outline btn-sm" style="margin-top:8px; width:100%;" onclick="cancelBooking('${r.id}', '${orderId}')">❌ Отменить</button>
+            </div>`;
+          }
+        }
+        
+        if (rejected.length > 0) {
+          orderHtml += `<div style="background:#fef2f2; padding:10px; border-radius:8px; margin-bottom:8px; color:#991b1b; border-left: 4px solid var(--danger);">
+            <b>❌ Бронь отменена</b><br>
+            Билеты: <b>${rejected.map(t=>t.num).join(', ')}</b><br>
+            <small>Причина: ${rejected[0].rejectReason || 'Время брони истекло или отменено администратором'}</small>
+          </div>`;
+        }
+        
+        orderHtml += `</div>`;
+        detailsHtml += orderHtml;
+    });
+
+    detailsHtml += `<button class="btn-outline btn-sm" style="width:100%; margin-top:12px;" onclick="openRaffle('${r.id}')">➕ Перейти к розыгрышу</button></div>`;
+
+    let summary = '';
+    if (isActive) {
+      summary = `<span style="color: var(--danger); font-size: 12px; font-weight: bold;">Требуется действие</span>`;
+    } else {
+      const count = myTickets.filter(t => t.status === 'confirmed').length;
+      summary = `<span style="color: var(--muted); font-size: 12px;">Всего билетов: ${count} (Оплачено)</span>`;
+    }
+
+    container.innerHTML += `
+      <div class="card fade-in" style="margin-bottom: 12px;">
+        <div class="accordion-header" onclick="toggleAccordion('${r.id}')">
+          <h3>${r.prizeName} ${r.uniqueCode ? '#'+r.uniqueCode : ''}</h3>
+          <span style="color: var(--accent); font-size: 18px;" id="acc-icon-${r.id}">${isActive ? '▲' : '▼'}</span>
+        </div>
+        <div style="font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 8px;">${summary}</div>
+        ${detailsHtml}
+      </div>
+    `;
+  });
+}
+
+function toggleAccordion(raffleId) {
+  const content = document.getElementById(`acc-content-${raffleId}`);
+  const icon = document.getElementById(`acc-icon-${raffleId}`);
+  if (!content || !icon) return;
+  
+  if (content.classList.contains('active')) {
+    content.classList.remove('active');
+    icon.innerText = '▼';
+  } else {
+    content.classList.add('active');
+    icon.innerText = '▲';
+  }
+}
+async function payBooking(raffleId, orderId) {
+  const r = raffles.find(x => x.id === raffleId);
+  if (r) {
+    r.soldTickets.forEach(t => { 
+        if (t.orderId === orderId && t.status === 'pending') t.status = 'waiting_admin'; 
+        if (orderId === 'legacy' && t.status === 'pending' && !t.orderId) t.status = 'waiting_admin';
+    });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
+    showToast('Ожидайте проверки!', 'success');
+    loadRaffles(); 
+    setTimeout(() => { renderMyBookings(); markNotificationsRead(); }, 300);
+  }
+}
+
+async function cancelBooking(raffleId, orderId) {
+  if (!confirm('Отменить бронь?')) return;
+  const r = raffles.find(x => x.id === raffleId);
+  if (r) {
+    r.soldTickets.forEach(t => { 
+        if (t.orderId === orderId && t.status === 'pending') {
+            t.status = 'rejected'; t.rejectReason = 'Отменено вами';
+        }
+        if (orderId === 'legacy' && t.status === 'pending' && !t.orderId) {
+            t.status = 'rejected'; t.rejectReason = 'Отменено вами';
+        }
+    });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
+    loadRaffles(); setTimeout(renderMyBookings, 300);
+  }
+}
+
+async function checkExpiredBookings() {
+  let changed = false;
+  for (let r of raffles) {
+    if (!r.soldTickets) continue;
+    
+    r.soldTickets.forEach(t => {
+        if (t.status === 'pending' && t.expireAt && t.expireAt <= Date.now()) {
+            t.status = 'rejected'; t.rejectReason = 'Время бронирования истекло'; changed = true;
+        }
+    });
+    
+    if (changed) {
+        await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+    }
+  }
+  if (changed) loadRaffles();
+}
+
+function renderParticipants() {
+  const list = document.getElementById('participants-list');
+  list.innerHTML = '';
+  if (!currentRaffle.soldTickets || currentRaffle.soldTickets.length === 0) return;
+
+  const grouped = {};
+  currentRaffle.soldTickets.forEach(t => {
+    if (t.status === 'rejected') return;
+    if (!grouped[t.bookingCode]) grouped[t.bookingCode] = { owner: t.owner, tickets: [], statuses: new Set(), code: t.bookingCode, icon: t.gameIcon };
+    grouped[t.bookingCode].tickets.push(t.num);
+    grouped[t.bookingCode].statuses.add(t.status);
+    if (t.gameIcon) grouped[t.bookingCode].icon = t.gameIcon;
+  });
+
+  for (let code in grouped) {
+    const d = grouped[code];
+    const isMy = myProfile && myProfile.code === code;
+    const icon = d.icon || getIconForRaffle(code, currentRaffle.id);
+    
+    let ticketsHtml = '';
+    if (d.statuses.has('confirmed')) {
+      const conf = d.tickets.filter(n => (currentRaffle.soldTickets.find(t=>t.num===n)?.status === 'confirmed'));
+      if (conf.length) ticketsHtml += `<div style="font-size:13px; color:var(--success);">✅ Оплачено: ${conf.join(', ')}</div>`;
+    }
+    if (d.statuses.has('waiting_admin')) {
+      const wait = d.tickets.filter(n => (currentRaffle.soldTickets.find(t=>t.num===n)?.status === 'waiting_admin'));
+      if (wait.length) ticketsHtml += `<div style="font-size:13px; color:var(--accent);">📩 На проверке: ${wait.join(', ')}</div>`;
+    }
+    if (d.statuses.has('pending')) {
+      const pend = d.tickets.filter(n => (currentRaffle.soldTickets.find(t=>t.num===n)?.status === 'pending'));
+      if (pend.length) ticketsHtml += `<div style="font-size:13px; color:var(--warning);">⏳ Ждет оплаты: ${pend.join(', ')}</div>`;
+    }
+    
+    list.innerHTML += `
+      <div class="participant-row">
+        <div style="flex:1;">
+          <div style="font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+            ${d.owner} <span style="font-size:16px;">${icon}</span>
+          </div>
+          ${ticketsHtml}
+          ${isMy || isAdmin ? `<div style="font-size:12px; color:var(--accent); margin-top:4px;">Код: ${code}</div>` : ''}
+        </div>
+        ${isAdmin ? `<button class="btn-outline btn-sm" style="height:30px; padding:0 8px; margin-left:8px;" onclick="openPlayerCard('${code}')">✏️</button>` : ''}
+      </div>`;
+  }
+}
+
+async function openPlayerCard(code) {
+  if (!isAdmin) return;
+  const playerTickets = currentRaffle.soldTickets.filter(t => t.bookingCode === code && t.status !== 'rejected');
+  const playerName = playerTickets.length > 0 ? playerTickets[0].owner : 'Игрок';
+  const currentIcon = playerTickets.length > 0 ? (playerTickets[0].gameIcon || '⭐') : '⭐';
+
+  const usedIcons = new Set();
+  (currentRaffle.soldTickets || []).forEach(t => { if (t.bookingCode !== code && t.gameIcon) usedIcons.add(t.gameIcon); });
+
+  let iconsHtml = '';
+  ICONS.forEach(icon => {
+    const isUsed = usedIcons.has(icon);
+    iconsHtml += `
+      <div onclick="${isUsed ? '' : `changePlayerIcon('${code}', '${icon}')`}" 
+           style="font-size: 24px; padding: 10px; border-radius: 12px; cursor: ${isUsed ? 'not-allowed' : 'pointer'}; background: ${icon === currentIcon ? 'var(--accent-glow)' : (isUsed ? '#f1f5f9' : '#fff')}; border: 2px solid ${icon === currentIcon ? 'var(--accent)' : 'transparent'}; opacity: ${isUsed && icon !== currentIcon ? '0.3' : '1'}; text-align: center; position: relative;">
+        ${icon}
+        ${isUsed && icon !== currentIcon ? '<span style="position: absolute; top: 0; right: 0; font-size: 12px;">🔒</span>' : ''}
+      </div>
+    `;
+  });
+
+  let ticketsHtml = '';
+  playerTickets.forEach(t => {
+    ticketsHtml += `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 6px;">
+        <span style="font-weight: 700;">Билет №${t.num}</span>
+        <span style="font-size: 12px; color: var(--muted);">${t.status === 'confirmed' ? '✅ Оплачен' : t.status === 'waiting_admin' ? '📩 На проверке' : '⏳ Ожидает'}</span>
+        <button class="btn-danger btn-sm" onclick="deleteSpecificTicket('${code}', ${t.num})" style="padding: 4px 10px; font-size: 12px;">Удалить</button>
+      </div>
+    `;
+  });
+
+  let modal = document.getElementById('player-card-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'player-card-modal';
+    modal.className = 'modal';
+    modal.onclick = () => modal.style.display = 'none';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="modal-content" onclick="event.stopPropagation()" style="text-align: left; max-height: 85vh; overflow-y: auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+        <h3 style="margin:0;">Профиль: ${playerName}</h3>
+        <button class="btn-outline btn-sm" onclick="document.getElementById('player-card-modal').style.display='none'">✕</button>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
+         <div style="font-size: 14px; margin-bottom: 4px;">Код: <b style="color: var(--accent);">${code}</b></div>
+         <div style="font-size: 14px; margin-bottom: 4px;">Стикер: <b style="font-size: 18px;">${currentIcon}</b></div>
+      </div>
+
+      <h4 style="margin-bottom: 8px; font-size: 15px;">Сменить стикер (занятые заблокированы):</h4>
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;">
+        ${iconsHtml}
+      </div>
+
+      <h4 style="margin-bottom: 8px; font-size: 15px;">Билеты игрока (${playerTickets.length}):</h4>
+      <div style="margin-bottom: 16px;">
+        ${ticketsHtml || '<p style="color:var(--muted); font-size:13px;">Нет активных билетов</p>'}
+      </div>
+
+      <button class="btn-danger" style="width: 100%; margin-bottom: 8px;" onclick="deletePlayerTickets('${code}')">🗑 Удалить ВСЕ билеты</button>
+    </div>
+  `;
+  modal.style.display = 'flex';
+}
+
+async function changePlayerIcon(code, newIcon) {
+  if (!isAdmin) return;
+  currentRaffle.soldTickets.forEach(t => { if (t.bookingCode === code) t.gameIcon = newIcon; });
+  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+  showToast('Стикер изменен!', 'success');
+  renderTickets(); renderParticipants(); openPlayerCard(code); 
+}
+
+async function deleteSpecificTicket(code, num) {
+  if (!confirm('Удалить этот билет?')) return;
+  const r = currentRaffle;
+  if (r) {
+    r.soldTickets = r.soldTickets.filter(t => !(t.bookingCode === code && t.num === num));
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+    showToast('Билет удален', 'success');
+    renderTickets(); renderParticipants(); 
+    
+    const playerTickets = r.soldTickets.filter(t => t.bookingCode === code && t.status !== 'rejected');
+    if(playerTickets.length === 0) document.getElementById('player-card-modal').style.display = 'none';
+    else openPlayerCard(code);
+  }
+}
+
+async function deletePlayerTickets(code) {
+  if (!confirm('Удалить ВСЕ билеты этого игрока?')) return;
+  const r = currentRaffle;
+  if (r) {
+    r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== code);
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+    showToast('Билеты игрока удалены', 'success');
+    document.getElementById('player-card-modal').style.display = 'none';
+    renderTickets(); renderParticipants();
+  }
+}
+
+function updateAdminCounters() {
+  let unpublished = 0;
+  raffles.forEach(r => { if (!r.isPublished) unpublished++; });
+  const rCount = document.getElementById('reviewCount');
+  if (rCount) rCount.innerText = unpublished;
+
+  let pendingOrders = new Set();
+  raffles.forEach(r => {
+    (r.soldTickets || []).forEach(t => {
+      if ((t.status === 'waiting_admin' || t.status === 'pending') && t.bookingCode) {
+        const orderKey = t.orderId ? `${r.id}_${t.bookingCode}_${t.orderId}` : `${r.id}_${t.bookingCode}_legacy_${t.status}`;
+        pendingOrders.add(orderKey);
+      }
+    });
+  });
+  
+  const pCount = document.getElementById('pendingCount');
+  if (pCount) pCount.innerText = pendingOrders.size > 0 ? `(${pendingOrders.size})` : '';
+}
+
+function toggleAdminSection(section) {
+  const p = document.getElementById('pendingList'), r = document.getElementById('reviewList'), pl = document.getElementById('playersList');
+  
+  if (activeAdminSection === section) {
+    p.classList.add('hidden'); r.classList.add('hidden'); pl.classList.add('hidden');
+    activeAdminSection = null;
+    return;
+  }
+
+  p.classList.add('hidden'); r.classList.add('hidden'); pl.classList.add('hidden');
+  activeAdminSection = section;
+
+  if (section === 'pending') { p.classList.remove('hidden'); renderPendingAdminList(); }
+  else if (section === 'review') { r.classList.remove('hidden'); renderReviewAdminList(); }
+  else if (section === 'players') { pl.classList.remove('hidden'); renderPlayersDatabase(); }
+}
+
+function renderPendingAdminList() {
+  const list = document.getElementById('pendingList');
+  list.innerHTML = '';
+  let has = false;
+  
+  raffles.forEach(r => {
+    const groupedByOrder = {};
+    (r.soldTickets || []).filter(t => t.status === 'waiting_admin' || t.status === 'pending').forEach(t => {
+      const key = t.orderId || `legacy_${t.status}_${t.bookingCode}`;
+      if (!groupedByOrder[key]) groupedByOrder[key] = { 
+          owner: t.owner, tickets: [], status: t.status, pin: t.pin, 
+          code: t.bookingCode, isAdminBooked: t.isAdminBooked, orderId: t.orderId
+      };
+      groupedByOrder[key].tickets.push(t.num);
+      if (t.status === 'waiting_admin') groupedByOrder[key].status = 'waiting_admin'; 
+    });
+
+    for (let orderKey in groupedByOrder) {
+      has = true;
+      const d = groupedByOrder[orderKey];
+      const orderDisplayId = d.orderId ? d.orderId.split('-')[1].slice(-4) : '';
+      
+      let statusBadge = d.status === 'waiting_admin' 
+        ? `<span style="background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-size:11px;">📩 На проверке</span>` 
+        : `<span style="background:#fef3c7; color:#92400e; padding:2px 6px; border-radius:4px; font-size:11px;">⏳ Ждет оплаты</span>`;
+        
+      let adminNote = d.isAdminBooked ? `<div style="font-size:11px; color:var(--danger); margin-top:4px;">⚠️ Бронь от администратора</div>` : '';
+      
+      let actionButtons = '';
+      if (d.status === 'waiting_admin') {
+          actionButtons = `
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn-success btn-sm" style="flex:1;" onclick="approve('${r.id}', '${d.code}', '${orderKey}')">✅ Принять</button>
+              <button class="btn-danger btn-sm" style="flex:1;" onclick="reject('${r.id}', '${d.code}', '${orderKey}')">❌ Отклонить</button>
+            </div>
+          `;
+      } else {
+          actionButtons = `
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn-danger btn-sm" style="flex:1;" onclick="reject('${r.id}', '${d.code}', '${orderKey}')">❌ Отменить бронь</button>
+            </div>
+          `;
+      }
+
+      list.innerHTML += `<div class="fade-in" style="background:#ffffff; padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid #fcd34d;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <p style="margin-bottom:4px;"><strong>${r.prizeName} ${r.uniqueCode ? '#'+r.uniqueCode : ''}</strong></p>
+            ${statusBadge}
+        </div>
+        ${orderDisplayId ? `<div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Чек: #${orderDisplayId}</div>` : ''}
+        <p style="font-size:14px;">Имя: ${d.owner} | ПИН: ${d.pin} <br><span style="color:var(--accent); font-weight:bold; cursor:pointer;" onclick="copyCode('${d.code}')">Код: ${d.code} 📋</span></p>
+        <p style="font-size:14px;">Билеты: ${d.tickets.join(', ')}</p>
+        <p style="font-size:14px;">Сумма: <b>${d.tickets.length * r.ticketPrice} ₽</b></p>
+        ${adminNote}
+        ${actionButtons}
+      </div>`;
+    }
+  });
+  if (!has) list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center;">Нет заявок на проверку.</p>';
+}
+
+function renderReviewAdminList() {
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  const unpub = raffles.filter(r => !r.isPublished);
+  if (!unpub.length) { list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center;">Нет черновиков.</p>'; return; }
+  
+  unpub.forEach(r => {
+    list.innerHTML += `<div class="fade-in" style="background:#ffffff; padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid #cbd5e1;">
+      <p><strong>${r.prizeName} ${r.uniqueCode ? '#'+r.uniqueCode : ''}</strong></p>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn-outline btn-sm" style="flex:1;" onclick="openRaffle('${r.id}')">👁 Посмотреть</button>
+        <button class="btn-danger btn-sm" style="flex:1;" onclick="deleteRaffle('${r.id}')">Удалить</button>
+      </div>
+    </div>`;
+  });
+}
+
+async function renderPlayersDatabase() {
+  const list = document.getElementById('players-list-container');
+  const query = document.getElementById('admin-search').value.toLowerCase();
+  list.innerHTML = '<p style="color:var(--muted); font-size:14px; padding:10px;">Загрузка базы...</p>';
+  
+  const { data, error } = await supabaseClient.from('users').select('*');
+  if (error) return list.innerHTML = `<p style="color:var(--danger); font-size:14px; padding:10px;">Ошибка: ${error.message}</p>`;
+  if (!data || data.length === 0) return list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center; padding:10px;">База пока пуста.</p>';
+
+  const filtered = data.filter(p => 
+    p.name.toLowerCase().includes(query) || p.phone.includes(query) || 
+    p.game_code.toLowerCase().includes(query) || p.pin.includes(query)
+  );
+
+  if (filtered.length === 0) return list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center; padding:10px;">Никого не найдено.</p>';
+
+  list.innerHTML = '';
+  filtered.forEach(p => {
+    list.innerHTML += `<div class="fade-in" style="background:#ffffff; padding:10px; border-radius:10px; margin-bottom:8px; border: 1px solid #cbd5e1; font-size:13px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div><b>Имя:</b> ${p.name}</div>
+        <div><b>Логин:</b> ${p.phone}</div>
+        <div><b>Код:</b> <span style="color:var(--accent); cursor:pointer;" onclick="copyCode('${p.game_code}')">${p.game_code} 📋</span></div>
+        <div><b>ПИН:</b> ${p.pin}</div>
+      </div>
+      <button class="btn-danger btn-sm" onclick="deletePlayerAccount('${p.phone}')">🗑</button>
+    </div>`;
+  });
+}
+
+async function deletePlayerAccount(phone) {
+  if (!confirm('Вы точно хотите удалить этот аккаунт? Все билеты этого игрока во всех розыгрышах будут удалены!')) return;
+  
+  const { data: user } = await supabaseClient.from('users').select('game_code').eq('phone', phone).single();
+  if (user) {
+      for (let r of raffles) {
+        if (!r.soldTickets) continue;
+        const initLen = r.soldTickets.length;
+        r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== user.game_code);
+        if (r.soldTickets.length !== initLen) {
+          await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+        }
+      }
+  }
+
+  await supabaseClient.from('users').delete().eq('phone', phone);
+  showToast('Аккаунт и все билеты удалены', 'success');
+  renderPlayersDatabase();
+}
+
+async function searchAdminPlayer() {
+  const query = document.getElementById('a-search').value.toLowerCase();
+  const resultsContainer = document.getElementById('admin-search-results');
+  
+  if (query.length < 2) {
+    resultsContainer.classList.add('hidden');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.from('users').select('*');
+  if (error || !data) return;
+
+  const filtered = data.filter(p => 
+    p.name.toLowerCase().includes(query) || p.phone.includes(query) || p.game_code.toLowerCase().includes(query)
+  ).slice(0, 5); 
+
+  if (filtered.length === 0) {
+    resultsContainer.innerHTML = '<div style="padding:10px; color:var(--muted);">Не найдено</div>';
+    resultsContainer.classList.remove('hidden');
+    return;
+  }
+
+  resultsContainer.innerHTML = '';
+  filtered.forEach(p => {
+    const el = document.createElement('div');
+    el.style.cssText = 'padding:10px; border-bottom:1px solid #eee; cursor:pointer; font-size:14px;';
+    el.innerHTML = `<b>${p.name}</b> (Код: ${p.game_code})<br><small style="color:var(--muted);">Логин: ${p.phone}</small>`;
+    el.onclick = () => {
+      document.getElementById('a-search').value = p.name;
+      document.getElementById('a-name').value = p.name;
+      tempAdminPlayer = p;
+      resultsContainer.classList.add('hidden');
+    };
+    resultsContainer.appendChild(el);
+  });
+  resultsContainer.classList.remove('hidden');
+}
+
+async function adminBook(status) {
+  if (!tempAdminPlayer) return showToast('Выберите игрока из списка!', 'error');
+  if (selectedTickets.size === 0) return showToast('Выберите билеты!', 'error');
+
+  isSubmitting = true;
+  try {
+    const { data: freshData } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
+    let latestRaffle = { ...freshData.data, id: freshData.id };
+    if (!latestRaffle.soldTickets) latestRaffle.soldTickets = [];
+
+    const gameIcon = getGameIconForPlayer(latestRaffle, tempAdminPlayer.game_code);
+    const expireAt = Date.now() + 5 * 60 * 1000;
+    const orderId = status === 'pending' ? 'ORD-' + Date.now() : null; 
+
+    const inserts = Array.from(selectedTickets).map(n => ({ 
+      num: n, owner: tempAdminPlayer.name, status: status, 
+      bookingCode: tempAdminPlayer.game_code, pin: tempAdminPlayer.pin, gameIcon: gameIcon,
+      expireAt: status === 'pending' ? expireAt : null,
+      orderId: orderId, isAdminBooked: true 
+    }));
+    
+    latestRaffle.soldTickets.push(...inserts);
+    await supabaseClient.from('raffles').update({ data: latestRaffle }).eq('id', latestRaffle.id);
+    
+    currentRaffle.soldTickets = latestRaffle.soldTickets;
+    selectedTickets.clear();
+    document.getElementById('a-search').value = '';
+    document.getElementById('a-random').value = '';
+    tempAdminPlayer = null;
+    renderTickets();
+    renderParticipants();
+    
+    loadRaffles(); 
+    showToast(`Билеты для ${inserts[0].owner} добавлены (${status === 'confirmed' ? 'Оплачено' : 'Бронь'})`, 'success');
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, 'error');
+  } finally {
+    isSubmitting = false;
+  }
+}
+
+async function approve(id, code, orderKey) {
+  const r = raffles.find(x => x.id === id);
+  if (r) {
+    const isLegacy = orderKey.includes('legacy');
+    const actualOrderId = isLegacy ? null : orderKey.split('_').pop();
+    
+    r.soldTickets.forEach(t => { 
+        if (t.bookingCode === code && t.status === 'waiting_admin') {
+            if (isLegacy || !t.orderId || t.orderId === actualOrderId) {
+                t.status = 'confirmed';
+            }
+        }
+    });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
+    showToast('✅ Оплата принята!', 'success');
+    loadRaffles(); toggleAdminSection('pending');
+  }
+}
+
+async function reject(id, code, orderKey) {
+  const r = raffles.find(x => x.id === id);
+  if (r) {
+    const isLegacy = orderKey.includes('legacy');
+    const actualOrderId = isLegacy ? null : orderKey.split('_').pop();
+    
+    r.soldTickets.forEach(t => { 
+        if (t.bookingCode === code && (t.status === 'waiting_admin' || t.status === 'pending')) {
+            if (isLegacy || !t.orderId || t.orderId === actualOrderId) {
+                t.status = 'rejected'; 
+                t.rejectReason = 'Отклонено администратором';
+            }
+        }
+    });
+    await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
+    showToast('❌ Бронь отклонена', 'error');
+    loadRaffles(); toggleAdminSection('pending');
+  }
+}
+
+async function deleteRaffle(id) {
+  if (!confirm('Удалить розыгрыш навсегда?')) return;
+  try {
+    const { error } = await supabaseClient.from('raffles').delete().eq('id', id);
+    if (error) throw error;
+    raffles = raffles.filter(r => r.id !== id);
+    showToast('Розыгрыш удален');
+    loadRaffles(); toggleAdminSection('review');
+    if (currentRaffle && currentRaffle.id === id) switchView('main');
+  } catch (err) { showToast('Ошибка: ' + err.message, 'error'); }
+}
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width, height = img.height;
+      if (width > height && width > 500) { height *= 500 / width; width = 500; }
+      else if (height > 500) { width *= 500 / height; height = 500; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+      const preview = document.getElementById('preview-img');
+      preview.src = uploadedImageBase64; preview.style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function createRaffle() {
+  if (isSubmitting) return; 
+  const t = parseInt(document.getElementById('c-tickets').value);
+  const p = document.getElementById('c-prizes').value;
+  const price = parseInt(document.getElementById('c-price').value);
+  const name = document.getElementById('c-name').value.trim();
+  const req = document.getElementById('c-req').value.trim();
+  
+  if (!t || !name || !price) return showToast('Заполните все поля!', 'error');
+  if (req) localStorage.setItem('myPaymentDetails', req);
+  
+  isSubmitting = true;
+  const btn = document.getElementById('btn-create-raffle');
+  btn.innerHTML = 'Создание...'; btn.disabled = true;
+
+  const newId = Date.now().toString();
+  const uniqueCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+  const newRaffle = {
+    id: newId, totalTickets: t, prizesCount: p, prizeName: name,
+    imageUrl: uploadedImageBase64, ticketPrice: price, paymentDetails: req,
+    isPublished: false, isDrawn: false, soldTickets: [], winnersHistory: [],
+    uniqueCode: uniqueCode, createdAt: Date.now()
+  };
+  
+  try {
+    const { error } = await supabaseClient.from('raffles').insert([{ id: newId, data: newRaffle }]);
+    if (error) throw error;
+    uploadedImageBase64 = "";
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('c-name').value = ''; document.getElementById('c-req').value = '';
+    document.getElementById('c-tickets').value = ''; document.getElementById('c-price').value = '';
+    updateCalc();
+    
+    showToast('Розыгрыш создан!', 'success');
+    loadRaffles(); switchView('main');
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, 'error');
+  } finally {
+    btn.innerHTML = 'Создать и на проверку'; btn.disabled = false; isSubmitting = false;
+  }
+}
+
+async function publishRaffle() {
+  currentRaffle.isPublished = true;
+  const rIndex = raffles.findIndex(r => r.id === currentRaffle.id);
+  if (rIndex !== -1) { raffles[rIndex].isPublished = true; }
+  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+  showToast('Розыгрыш опубликован!', 'success');
+  loadRaffles(); switchView('main');
+}
+
+async function startDraw() {
+  let availableTickets = (currentRaffle.soldTickets || []).filter(t => t.status === 'confirmed');
+  if (availableTickets.length < currentRaffle.totalTickets) return showToast('Не все билеты оплачены!', 'error');
+  
+  document.getElementById('draw-btn').classList.add('hidden');
+  document.getElementById('draw-area').classList.remove('hidden');
+  
+  const winners = [];
+  const totalInitialTickets = currentRaffle.totalTickets;
+  const drawDate = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  for (let i = 1; i <= currentRaffle.prizesCount; i++) {
+    if (availableTickets.length === 0) break;
+    document.getElementById('draw-title').innerText = `Приз ${i} из ${currentRaffle.prizesCount}`;
+    const winnerTicket = availableTickets[Math.floor(Math.random() * availableTickets.length)];
+    await animateNum(winnerTicket.num);
+    
+    const ticketsAtStart = (currentRaffle.soldTickets || []).filter(t => t.bookingCode === winnerTicket.bookingCode && t.status === 'confirmed').length;
+    const currentTotal = availableTickets.length;
+    const chance = Math.round((ticketsAtStart / currentTotal) * 100);
+    const winnerIcon = winnerTicket.gameIcon || getIconForRaffle(winnerTicket.bookingCode, currentRaffle.id);
+
+    winners.push({ ...winnerTicket, winnerIcon, prizeNum: i, stats: { totalTickets: totalInitialTickets, currentTotalAtDraw: currentTotal, personalTickets: ticketsAtStart, chance, date: drawDate } });
+    
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    
+    const winnerHtml = `
+      <div class="fade-in" style="text-align:center; padding:24px; background:#ffffff; border-radius:16px; border:2px solid var(--success); margin-top:16px;">
+        <div style="font-size:56px; margin-bottom:8px;">🏆</div>
+        <div style="color:var(--success); font-weight:800; font-size:13px; margin-bottom:8px;">ПОЗДРАВЛЯЕМ!</div>
+        <div style="font-size:22px; font-weight:900; margin-bottom:12px;">${winnerTicket.owner} ${winnerIcon}</div>
+        <div style="background:#f0fdf4; padding:10px; border-radius:10px; margin-bottom:10px; color:var(--accent); font-weight:bold;">${currentRaffle.prizeName}</div>
+        <div style="font-size:14px; color:var(--muted);">Билет № <b>${winnerTicket.num}</b></div>
+        <div style="text-align:left; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#64748b; margin-top:8px;">
+          <p>• Розыгрыш: #${currentRaffle.uniqueCode} от ${drawDate}</p>
+        <p>• Всего билетов: ${totalInitialTickets}</p>
+          <p>• На момент розыгрыша: ${currentTotal}</p>
+          <p>• Билетов у ${winnerTicket.owner}: ${ticketsAtStart} (Шанс: ${chance}%)</p>
+        </div>
+      </div>`;
+    document.getElementById('winners-list').insertAdjacentHTML('afterbegin', winnerHtml);
+      
+    availableTickets = availableTickets.filter(t => t.num !== winnerTicket.num);
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  
+  document.getElementById('draw-area').classList.add('hidden');
+  currentRaffle.isDrawn = true;
+  currentRaffle.winnersHistory = winners;
+  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+  showToast('Розыгрыш завершен!', 'success');
+  loadRaffles();
+}
+
+function animateNum(final) {
+  return new Promise(res => {
+    const el = document.getElementById('rolling-num');
+    let ticks = 0;
+    const int = setInterval(() => {
+      el.innerText = Math.floor(Math.random() * currentRaffle.totalTickets) + 1;
+      if (++ticks >= 20) { clearInterval(int); el.innerText = final; setTimeout(res, 800); }
+    }, 50);
+  });
+}
+
+function renderWinners(winners) {
+  const wList = document.getElementById('winners-list');
+  wList.innerHTML = '';
+  if (winners && winners.length) {
+    [...winners].reverse().forEach(w => {
+      const icon = w.winnerIcon || getIconForRaffle(w.bookingCode, currentRaffle.id);
+      wList.innerHTML += `<div class="fade-in" style="text-align:center; padding:24px; background:#ffffff; border-radius:16px; border:2px solid var(--success); margin-top:16px;">
+        <div style="font-size:56px; margin-bottom:8px;">🏆</div>
+        <div style="color:var(--success); font-weight:800; font-size:13px; margin-bottom:8px;">ПОЗДРАВЛЯЕМ!</div>
+        <div style="font-size:22px; font-weight:900; margin-bottom:12px;">${w.owner} ${icon}</div>
+        <div style="background:#f0fdf4; padding:10px; border-radius:10px; margin-bottom:10px; color:var(--accent); font-weight:bold;">${currentRaffle.prizeName}</div>
+        <div style="font-size:14px; color:var(--muted);">Билет № <b>${w.num}</b></div>
+        <div style="font-size:12px; color:#64748b; margin-top:8px;">
+          Розыгрыш: #${currentRaffle.uniqueCode} от ${w.stats ? w.stats.date : new Date().toLocaleString('ru-RU')}
+        </div>
+      </div>`;
+    });
+  }
+}
+
+function openImageModal(src) {
+  let modal = document.getElementById('image-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'image-modal';
+    modal.className = 'modal';
+    modal.onclick = () => modal.style.display = 'none';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `<img src="${src}" style="max-width:95%; max-height:90%; border-radius:12px;">`;
+  modal.style.display = 'flex';
+}
+</script>
+</body>
+</html>
