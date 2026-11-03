@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#f0f9ff">
 <title>Твой Шанс</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
   :root { 
@@ -399,22 +398,26 @@
   </div>
 </div>
 <script>
-const SUPABASE_URL = 'https://injaxmluvgjggylgqcfb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_Ba3Lv8SyX73z5idh2rYxdQ_sLgXnDJJ';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ЛОКАЛЬНАЯ БАЗА ДАННЫХ (Без интернета)
+const DB = {
+  get: (key) => JSON.parse(localStorage.getItem('tvoy_shans_' + key)) || [],
+  set: (key, val) => localStorage.setItem('tvoy_shans_' + key, JSON.stringify(val))
+};
+
 const ADMIN_PASSWORD = 'RjhJkM01200111';
 const ICONS = ['⭐', '✅', '💎', '🔥', '🍀', '🎯', '🎲', '👑', '🚀', '💡'];
 const BAD_WORDS = ['хуй', 'хуя', 'пизд', 'бляд', 'ебал', 'ебать', 'мразь', 'шлюх', 'сука', 'пидор', 'гандон', 'долбоеб', 'мудак', 'елда', 'елдак', 'залуп', 'шлюха', 'дроч', 'гомик', 'педик'];
 const GAME_URL = 'https://4gwmj69s25-ctrl.github.io/tvoy-shans/';
 
-let raffles = [], currentRaffle = null, selectedTickets = new Set();
+let raffles = DB.get('raffles');
+let users = DB.get('users');
+let currentRaffle = null, selectedTickets = new Set();
 let isAdmin = false, isSubmitting = false;
 let uploadedImageBase64 = "";
 let myProfile = JSON.parse(localStorage.getItem('myProfile')) || null;
 let lastUserStatuses = JSON.parse(localStorage.getItem('lastUserStatuses')) || {};
 let tempAdminPlayer = null;
 let activeAdminSection = null;
-let timerInterval = null;
 let authSource = 'main'; 
 
 function showToast(message, type = 'default') {
@@ -432,11 +435,7 @@ function checkBadWords(text) { return BAD_WORDS.some(word => text.toLowerCase().
 
 function shareGame() {
   if (navigator.share) {
-    navigator.share({
-      title: 'Твой Шанс',
-      text: 'Испытай удачу — забери приз!',
-      url: GAME_URL
-    }).catch(console.error);
+    navigator.share({ title: 'Твой Шанс', text: 'Испытай удачу — забери приз!', url: GAME_URL }).catch(console.error);
   } else {
     copyCode(GAME_URL);
   }
@@ -502,6 +501,11 @@ window.onload = () => {
   loadRaffles();
   setInterval(() => { checkExpiredBookings(); updateNotificationBadge(); }, 30000);
 };
+
+function saveDB() {
+  DB.set('raffles', raffles);
+  DB.set('users', users);
+}
 function checkAdminStatus() {
   isAdmin = localStorage.getItem('isAdmin') === 'true';
   document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
@@ -571,25 +575,23 @@ function toggleTab(tab) {
 
 function forceRefresh() {
   showToast('Загрузка...');
-  loadRaffles().then(() => showToast('Обновлено!', 'success'));
+  setTimeout(() => {
+    loadRaffles();
+    showToast('Обновлено!', 'success');
+  }, 300);
 }
 
 async function loadRaffles() {
-  try {
-    const { data, error } = await supabaseClient.from('raffles').select('id, data, created_at').order('created_at', { ascending: false });
-    if (error) throw error;
-    raffles = (data || []).map(item => ({ ...item.data, id: item.id, created_at: item.created_at })).filter(r => r.prizeName);
-    
-    const active = raffles.filter(r => r.isPublished && !r.isDrawn);
-    const finished = raffles.filter(r => r.isPublished && r.isDrawn);
-    
-    document.getElementById('header-active').querySelector('span').innerText = `Активные (${active.length})`;
-    renderGrid('active', active);
-    renderGrid('finished', finished);
-    
-    if (isAdmin) updateAdminCounters();
-    updateNotificationBadge();
-  } catch (err) { console.error(err); }
+  raffles = DB.get('raffles');
+  const active = raffles.filter(r => r.isPublished && !r.isDrawn);
+  const finished = raffles.filter(r => r.isPublished && r.isDrawn);
+  
+  document.getElementById('header-active').querySelector('span').innerText = `Активные (${active.length})`;
+  renderGrid('active', active);
+  renderGrid('finished', finished);
+  
+  if (isAdmin) updateAdminCounters();
+  updateNotificationBadge();
 }
 
 function renderGrid(tab, list) {
@@ -602,7 +604,6 @@ function renderGrid(tab, list) {
     el.onclick = () => openRaffle(r.id);
     
     let imgHtml = r.imageUrl ? `<img src="${r.imageUrl}">` : '';
-    
     const total = r.totalTickets;
     const sold = (r.soldTickets || []).filter(t => t.status !== 'rejected').length;
     const free = total - sold;
@@ -700,6 +701,8 @@ function updatePinDots() { for (let i = 1; i <= 4; i++) document.getElementById(
 
 async function processPin() {
   const phone = currentPinAction === 'login' ? document.getElementById('login-phone').value.trim() : tempRegData.phone;
+  users = DB.get('users');
+
   if (currentPinAction === 'register') {
     if (tempRegData.step === 1) {
       tempRegData.pin = enteredPin; tempRegData.step = 2;
@@ -711,11 +714,13 @@ async function processPin() {
       tempRegData.step = 1; enteredPin = ''; updatePinDots();
       document.getElementById('pin-title').innerText = 'Придумайте ПИН'; return;
     }
-    const { data: exist } = await supabaseClient.from('users').select('phone').eq('phone', tempRegData.phone);
-    if (exist?.length > 0) return document.getElementById('pin-error').innerText = 'Этот логин занят!';
+    const exist = users.find(u => u.phone === tempRegData.phone);
+    if (exist) return document.getElementById('pin-error').innerText = 'Этот логин занят!';
     
     const newCode = generateCode(tempRegData.name);
-    await supabaseClient.from('users').insert([{ phone: tempRegData.phone, name: tempRegData.name, pin: tempRegData.pin, game_code: newCode }]);
+    const newUser = { phone: tempRegData.phone, name: tempRegData.name, pin: tempRegData.pin, game_code: newCode };
+    users.push(newUser);
+    DB.set('users', users);
     
     myProfile = { phone: tempRegData.phone, name: tempRegData.name, pin: tempRegData.pin, code: newCode };
     localStorage.setItem('myProfile', JSON.stringify(myProfile));
@@ -727,7 +732,7 @@ async function processPin() {
     else { switchView('main'); }
     
   } else {
-    const { data } = await supabaseClient.from('users').select('*').eq('phone', phone).eq('pin', enteredPin).single();
+    const data = users.find(u => u.phone === phone && u.pin === enteredPin);
     if (data) {
       myProfile = { phone: data.phone, name: data.name, pin: data.pin, code: data.game_code };
       localStorage.setItem('myProfile', JSON.stringify(myProfile));
@@ -737,7 +742,6 @@ async function processPin() {
       
       if (authSource === 'raffle') { if (currentRaffle) openRaffle(currentRaffle.id); } 
       else { switchView('main'); }
-      
     } else {
       document.getElementById('pin-error').innerText = 'Неверный логин или ПИН!';
       enteredPin = ''; updatePinDots();
@@ -763,7 +767,8 @@ function logout() {
   myProfile = null; localStorage.removeItem('myProfile');
   updateAuthUI(); switchView('main');
 }
-  async function editName() {
+
+async function editName() {
   const newName = prompt('Введите новое имя:', myProfile.name);
   if (!newName || newName === myProfile.name) return;
   if (checkBadWords(newName)) return showToast('Имя содержит мат!', 'error');
@@ -775,7 +780,10 @@ function logout() {
   if (Date.now() - changes.time > 24 * 60 * 60 * 1000) { changes = { count: 0, time: Date.now() }; }
   if (changes.count >= 3) return showToast('Вы сменили имя 3 раза. Следующая попытка через 24 часа.', 'error');
 
-  await supabaseClient.from('users').update({ name: newName }).eq('phone', myProfile.phone);
+  users = DB.get('users');
+  const uIdx = users.findIndex(u => u.phone === myProfile.phone);
+  if(uIdx !== -1) { users[uIdx].name = newName; DB.set('users', users); }
+  
   myProfile.name = newName;
   localStorage.setItem('myProfile', JSON.stringify(myProfile));
   
@@ -789,16 +797,13 @@ function logout() {
 async function deleteMyAccount() {
   if (!confirm('ВНИМАНИЕ! Вы точно хотите удалить аккаунт? ВСЕ ваши билеты сгорят, места освободятся. Отменить это будет невозможно!')) return;
   
-  await supabaseClient.from('users').delete().eq('phone', myProfile.phone);
+  users = DB.get('users').filter(u => u.phone !== myProfile.phone);
+  DB.set('users', users);
   
-  for (let r of raffles) {
-    if (!r.soldTickets) continue;
-    const initLen = r.soldTickets.length;
-    r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== myProfile.code);
-    if (r.soldTickets.length !== initLen) {
-      await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
-    }
-  }
+  raffles.forEach(r => {
+    if (r.soldTickets) r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== myProfile.code);
+  });
+  saveDB();
   
   localStorage.removeItem('myProfile');
   myProfile = null;
@@ -810,10 +815,9 @@ async function deleteMyAccount() {
 
 async function openRaffle(id) {
   toggleLoader(true);
-  if (timerInterval) clearInterval(timerInterval);
   try {
-    const { data } = await supabaseClient.from('raffles').select('*').eq('id', id).single();
-    currentRaffle = { ...data.data, id: data.id, created_at: data.created_at };
+    const rList = DB.get('raffles');
+    currentRaffle = rList.find(x => x.id === id);
     selectedTickets.clear();
     
     document.getElementById('r-name').innerText = currentRaffle.prizeName;
@@ -948,12 +952,14 @@ async function bookTickets() {
       btn.disabled = true; btn.innerText = 'Бронь...';
       
       try {
-        const { data: fresh } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
-        let r = { ...fresh.data, id: fresh.id };
+        let rList = DB.get('raffles');
+        let r = rList.find(x => x.id === currentRaffle.id);
         if (!r.soldTickets) r.soldTickets = [];
+        
         for (let num of selectedTickets) {
           if (r.soldTickets.some(t => t.num === num && t.status !== 'rejected')) throw new Error(`Билет ${num} уже занят!`);
         }
+        
         const gameIcon = getGameIconForPlayer(r, tempAdminPlayer.game_code);
         const expireAt = Date.now() + 5 * 60 * 1000;
         const orderId = 'ORD-' + Date.now();
@@ -964,7 +970,7 @@ async function bookTickets() {
         }));
         
         r.soldTickets.push(...inserts);
-        await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+        DB.set('raffles', rList);
         currentRaffle.soldTickets = r.soldTickets;
         
         selectedTickets.clear();
@@ -982,9 +988,10 @@ async function bookTickets() {
       const btn = document.getElementById('btn-book');
       btn.disabled = true; btn.innerText = 'Бронь...';
       try {
-        const { data: fresh } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
-        let r = { ...fresh.data, id: fresh.id };
+        let rList = DB.get('raffles');
+        let r = rList.find(x => x.id === currentRaffle.id);
         if (!r.soldTickets) r.soldTickets = [];
+        
         for (let num of selectedTickets) {
           if (r.soldTickets.some(t => t.num === num && t.status !== 'rejected')) throw new Error(`Билет ${num} уже занят!`);
         }
@@ -998,7 +1005,7 @@ async function bookTickets() {
         }));
         
         r.soldTickets.push(...inserts);
-        await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
+        DB.set('raffles', rList);
         currentRaffle.soldTickets = r.soldTickets;
         selectedTickets.clear();
         renderTickets(); renderParticipants();
@@ -1010,13 +1017,13 @@ async function bookTickets() {
       finally { btn.disabled = false; btn.innerText = 'Забронировать'; }
   }
 }
-
 function renderMyBookings() {
   const container = document.getElementById('my-history-active');
   container.innerHTML = '';
   if (!myProfile) return;
 
   let rafflesWithData = [];
+  raffles = DB.get('raffles');
 
   raffles.forEach(r => {
     const myTickets = (r.soldTickets || []).filter(t => t.bookingCode === myProfile.code);
@@ -1142,14 +1149,16 @@ function toggleAccordion(raffleId) {
     icon.innerText = '▲';
   }
 }
+
 async function payBooking(raffleId, orderId) {
-  const r = raffles.find(x => x.id === raffleId);
+  let rList = DB.get('raffles');
+  let r = rList.find(x => x.id === raffleId);
   if (r) {
     r.soldTickets.forEach(t => { 
         if (t.orderId === orderId && t.status === 'pending') t.status = 'waiting_admin'; 
         if (orderId === 'legacy' && t.status === 'pending' && !t.orderId) t.status = 'waiting_admin';
     });
-    await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
+    DB.set('raffles', rList);
     showToast('Ожидайте проверки!', 'success');
     loadRaffles(); 
     setTimeout(() => { renderMyBookings(); markNotificationsRead(); }, 300);
@@ -1158,7 +1167,8 @@ async function payBooking(raffleId, orderId) {
 
 async function cancelBooking(raffleId, orderId) {
   if (!confirm('Отменить бронь?')) return;
-  const r = raffles.find(x => x.id === raffleId);
+  let rList = DB.get('raffles');
+  let r = rList.find(x => x.id === raffleId);
   if (r) {
     r.soldTickets.forEach(t => { 
         if (t.orderId === orderId && t.status === 'pending') {
@@ -1168,14 +1178,15 @@ async function cancelBooking(raffleId, orderId) {
             t.status = 'rejected'; t.rejectReason = 'Отменено вами';
         }
     });
-    await supabaseClient.from('raffles').update({ data: r }).eq('id', raffleId);
+    DB.set('raffles', rList);
     loadRaffles(); setTimeout(renderMyBookings, 300);
   }
 }
 
 async function checkExpiredBookings() {
   let changed = false;
-  for (let r of raffles) {
+  let rList = DB.get('raffles');
+  for (let r of rList) {
     if (!r.soldTickets) continue;
     
     r.soldTickets.forEach(t => {
@@ -1183,12 +1194,11 @@ async function checkExpiredBookings() {
             t.status = 'rejected'; t.rejectReason = 'Время бронирования истекло'; changed = true;
         }
     });
-    
-    if (changed) {
-        await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
-    }
   }
-  if (changed) loadRaffles();
+  if (changed) {
+      DB.set('raffles', rList);
+      loadRaffles();
+  }
 }
 
 function renderParticipants() {
@@ -1310,36 +1320,41 @@ async function openPlayerCard(code) {
 async function changePlayerIcon(code, newIcon) {
   if (!isAdmin) return;
   currentRaffle.soldTickets.forEach(t => { if (t.bookingCode === code) t.gameIcon = newIcon; });
-  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+  let rList = DB.get('raffles');
+  let rIdx = rList.findIndex(x => x.id === currentRaffle.id);
+  if(rIdx !== -1) { rList[rIdx] = currentRaffle; DB.set('raffles', rList); }
+  
   showToast('Стикер изменен!', 'success');
   renderTickets(); renderParticipants(); openPlayerCard(code); 
 }
 
 async function deleteSpecificTicket(code, num) {
   if (!confirm('Удалить этот билет?')) return;
-  const r = currentRaffle;
-  if (r) {
-    r.soldTickets = r.soldTickets.filter(t => !(t.bookingCode === code && t.num === num));
-    await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
-    showToast('Билет удален', 'success');
-    renderTickets(); renderParticipants(); 
-    
-    const playerTickets = r.soldTickets.filter(t => t.bookingCode === code && t.status !== 'rejected');
-    if(playerTickets.length === 0) document.getElementById('player-card-modal').style.display = 'none';
-    else openPlayerCard(code);
-  }
+  currentRaffle.soldTickets = currentRaffle.soldTickets.filter(t => !(t.bookingCode === code && t.num === num));
+  
+  let rList = DB.get('raffles');
+  let rIdx = rList.findIndex(x => x.id === currentRaffle.id);
+  if(rIdx !== -1) { rList[rIdx] = currentRaffle; DB.set('raffles', rList); }
+  
+  showToast('Билет удален', 'success');
+  renderTickets(); renderParticipants(); 
+  
+  const playerTickets = currentRaffle.soldTickets.filter(t => t.bookingCode === code && t.status !== 'rejected');
+  if(playerTickets.length === 0) document.getElementById('player-card-modal').style.display = 'none';
+  else openPlayerCard(code);
 }
 
 async function deletePlayerTickets(code) {
   if (!confirm('Удалить ВСЕ билеты этого игрока?')) return;
-  const r = currentRaffle;
-  if (r) {
-    r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== code);
-    await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
-    showToast('Билеты игрока удалены', 'success');
-    document.getElementById('player-card-modal').style.display = 'none';
-    renderTickets(); renderParticipants();
-  }
+  currentRaffle.soldTickets = currentRaffle.soldTickets.filter(t => t.bookingCode !== code);
+  
+  let rList = DB.get('raffles');
+  let rIdx = rList.findIndex(x => x.id === currentRaffle.id);
+  if(rIdx !== -1) { rList[rIdx] = currentRaffle; DB.set('raffles', rList); }
+  
+  showToast('Билеты игрока удалены', 'success');
+  document.getElementById('player-card-modal').style.display = 'none';
+  renderTickets(); renderParticipants();
 }
 
 function updateAdminCounters() {
@@ -1460,13 +1475,9 @@ function renderReviewAdminList() {
 async function renderPlayersDatabase() {
   const list = document.getElementById('players-list-container');
   const query = document.getElementById('admin-search').value.toLowerCase();
-  list.innerHTML = '<p style="color:var(--muted); font-size:14px; padding:10px;">Загрузка базы...</p>';
-  
-  const { data, error } = await supabaseClient.from('users').select('*');
-  if (error) return list.innerHTML = `<p style="color:var(--danger); font-size:14px; padding:10px;">Ошибка: ${error.message}</p>`;
-  if (!data || data.length === 0) return list.innerHTML = '<p style="color:var(--muted); font-size:14px; text-align:center; padding:10px;">База пока пуста.</p>';
+  users = DB.get('users');
 
-  const filtered = data.filter(p => 
+  const filtered = users.filter(p => 
     p.name.toLowerCase().includes(query) || p.phone.includes(query) || 
     p.game_code.toLowerCase().includes(query) || p.pin.includes(query)
   );
@@ -1490,19 +1501,17 @@ async function renderPlayersDatabase() {
 async function deletePlayerAccount(phone) {
   if (!confirm('Вы точно хотите удалить этот аккаунт? Все билеты этого игрока во всех розыгрышах будут удалены!')) return;
   
-  const { data: user } = await supabaseClient.from('users').select('game_code').eq('phone', phone).single();
+  users = DB.get('users');
+  const user = users.find(u => u.phone === phone);
   if (user) {
-      for (let r of raffles) {
-        if (!r.soldTickets) continue;
-        const initLen = r.soldTickets.length;
+      raffles.forEach(r => {
+        if (!r.soldTickets) return;
         r.soldTickets = r.soldTickets.filter(t => t.bookingCode !== user.game_code);
-        if (r.soldTickets.length !== initLen) {
-          await supabaseClient.from('raffles').update({ data: r }).eq('id', r.id);
-        }
-      }
+      });
+      users = users.filter(u => u.phone !== phone);
+      saveDB();
   }
 
-  await supabaseClient.from('users').delete().eq('phone', phone);
   showToast('Аккаунт и все билеты удалены', 'success');
   renderPlayersDatabase();
 }
@@ -1516,10 +1525,8 @@ async function searchAdminPlayer() {
     return;
   }
 
-  const { data, error } = await supabaseClient.from('users').select('*');
-  if (error || !data) return;
-
-  const filtered = data.filter(p => 
+  users = DB.get('users');
+  const filtered = users.filter(p => 
     p.name.toLowerCase().includes(query) || p.phone.includes(query) || p.game_code.toLowerCase().includes(query)
   ).slice(0, 5); 
 
@@ -1551,8 +1558,8 @@ async function adminBook(status) {
 
   isSubmitting = true;
   try {
-    const { data: freshData } = await supabaseClient.from('raffles').select('*').eq('id', currentRaffle.id).single();
-    let latestRaffle = { ...freshData.data, id: freshData.id };
+    let rList = DB.get('raffles');
+    let latestRaffle = rList.find(x => x.id === currentRaffle.id);
     if (!latestRaffle.soldTickets) latestRaffle.soldTickets = [];
 
     const gameIcon = getGameIconForPlayer(latestRaffle, tempAdminPlayer.game_code);
@@ -1567,7 +1574,7 @@ async function adminBook(status) {
     }));
     
     latestRaffle.soldTickets.push(...inserts);
-    await supabaseClient.from('raffles').update({ data: latestRaffle }).eq('id', latestRaffle.id);
+    DB.set('raffles', rList);
     
     currentRaffle.soldTickets = latestRaffle.soldTickets;
     selectedTickets.clear();
@@ -1587,7 +1594,8 @@ async function adminBook(status) {
 }
 
 async function approve(id, code, orderKey) {
-  const r = raffles.find(x => x.id === id);
+  let rList = DB.get('raffles');
+  let r = rList.find(x => x.id === id);
   if (r) {
     const isLegacy = orderKey.includes('legacy');
     const actualOrderId = isLegacy ? null : orderKey.split('_').pop();
@@ -1599,14 +1607,15 @@ async function approve(id, code, orderKey) {
             }
         }
     });
-    await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
+    DB.set('raffles', rList);
     showToast('✅ Оплата принята!', 'success');
     loadRaffles(); toggleAdminSection('pending');
   }
 }
 
 async function reject(id, code, orderKey) {
-  const r = raffles.find(x => x.id === id);
+  let rList = DB.get('raffles');
+  let r = rList.find(x => x.id === id);
   if (r) {
     const isLegacy = orderKey.includes('legacy');
     const actualOrderId = isLegacy ? null : orderKey.split('_').pop();
@@ -1619,7 +1628,7 @@ async function reject(id, code, orderKey) {
             }
         }
     });
-    await supabaseClient.from('raffles').update({ data: r }).eq('id', id);
+    DB.set('raffles', rList);
     showToast('❌ Бронь отклонена', 'error');
     loadRaffles(); toggleAdminSection('pending');
   }
@@ -1627,14 +1636,11 @@ async function reject(id, code, orderKey) {
 
 async function deleteRaffle(id) {
   if (!confirm('Удалить розыгрыш навсегда?')) return;
-  try {
-    const { error } = await supabaseClient.from('raffles').delete().eq('id', id);
-    if (error) throw error;
-    raffles = raffles.filter(r => r.id !== id);
-    showToast('Розыгрыш удален');
-    loadRaffles(); toggleAdminSection('review');
-    if (currentRaffle && currentRaffle.id === id) switchView('main');
-  } catch (err) { showToast('Ошибка: ' + err.message, 'error'); }
+  raffles = raffles.filter(r => r.id !== id);
+  DB.set('raffles', raffles);
+  showToast('Розыгрыш удален');
+  loadRaffles(); toggleAdminSection('review');
+  if (currentRaffle && currentRaffle.id === id) switchView('main');
 }
 
 function handleImageUpload(event) {
@@ -1685,8 +1691,10 @@ async function createRaffle() {
   };
   
   try {
-    const { error } = await supabaseClient.from('raffles').insert([{ id: newId, data: newRaffle }]);
-    if (error) throw error;
+    raffles = DB.get('raffles');
+    raffles.push(newRaffle);
+    DB.set('raffles', raffles);
+    
     uploadedImageBase64 = "";
     document.getElementById('preview-img').style.display = 'none';
     document.getElementById('c-name').value = ''; document.getElementById('c-req').value = '';
@@ -1704,9 +1712,9 @@ async function createRaffle() {
 
 async function publishRaffle() {
   currentRaffle.isPublished = true;
-  const rIndex = raffles.findIndex(r => r.id === currentRaffle.id);
-  if (rIndex !== -1) { raffles[rIndex].isPublished = true; }
-  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+  let rList = DB.get('raffles');
+  let rIdx = rList.findIndex(r => r.id === currentRaffle.id);
+  if (rIdx !== -1) { rList[rIdx].isPublished = true; DB.set('raffles', rList); }
   showToast('Розыгрыш опубликован!', 'success');
   loadRaffles(); switchView('main');
 }
@@ -1746,7 +1754,7 @@ async function startDraw() {
         <div style="font-size:14px; color:var(--muted);">Билет № <b>${winnerTicket.num}</b></div>
         <div style="text-align:left; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#64748b; margin-top:8px;">
           <p>• Розыгрыш: #${currentRaffle.uniqueCode} от ${drawDate}</p>
-        <p>• Всего билетов: ${totalInitialTickets}</p>
+          <p>• Всего билетов: ${totalInitialTickets}</p>
           <p>• На момент розыгрыша: ${currentTotal}</p>
           <p>• Билетов у ${winnerTicket.owner}: ${ticketsAtStart} (Шанс: ${chance}%)</p>
         </div>
@@ -1760,7 +1768,11 @@ async function startDraw() {
   document.getElementById('draw-area').classList.add('hidden');
   currentRaffle.isDrawn = true;
   currentRaffle.winnersHistory = winners;
-  await supabaseClient.from('raffles').update({ data: currentRaffle }).eq('id', currentRaffle.id);
+  
+  let rList = DB.get('raffles');
+  let rIdx = rList.findIndex(r => r.id === currentRaffle.id);
+  if (rIdx !== -1) { rList[rIdx] = currentRaffle; DB.set('raffles', rList); }
+  
   showToast('Розыгрыш завершен!', 'success');
   loadRaffles();
 }
