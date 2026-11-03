@@ -290,7 +290,6 @@
     </div>
   </div>
 </div>
-
 <div id="view-raffle" class="hidden fade-in">
     <button class="btn-outline btn-sm" style="margin-bottom: 12px;" onclick="switchView('main')">← Назад</button>
     
@@ -379,7 +378,6 @@
         <strong id="calc-total" style="font-size: 16px;">0 ₽</strong>
       </div>
       <select id="c-prizes"><option value="1">1 приз</option><option value="2">2 приза</option><option value="3">3 приза</option></select>
-      <!-- Таймер убран -->
       <input id="c-req" placeholder="Реквизиты (Сбер 8900...)" autocomplete="off">
       <p style="font-size:13px; color:var(--muted); margin-bottom:8px;">Фото приза:</p>
       <label class="btn-outline" style="text-align: center; padding: 14px; border-radius: 12px; cursor: pointer; display: block; font-size: 14px;">
@@ -504,7 +502,6 @@ window.onload = () => {
   loadRaffles();
   setInterval(() => { checkExpiredBookings(); updateNotificationBadge(); }, 30000);
 };
-
 function checkAdminStatus() {
   isAdmin = localStorage.getItem('isAdmin') === 'true';
   document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
@@ -765,8 +762,8 @@ function updateAuthUI() {
 function logout() {
   myProfile = null; localStorage.removeItem('myProfile');
   updateAuthUI(); switchView('main');
-}  
-async function editName() {
+}
+  async function editName() {
   const newName = prompt('Введите новое имя:', myProfile.name);
   if (!newName || newName === myProfile.name) return;
   if (checkBadWords(newName)) return showToast('Имя содержит мат!', 'error');
@@ -1014,7 +1011,6 @@ async function bookTickets() {
   }
 }
 
-// Профиль с аккордеоном
 function renderMyBookings() {
   const container = document.getElementById('my-history-active');
   container.innerHTML = '';
@@ -1033,7 +1029,6 @@ function renderMyBookings() {
     rafflesWithData.push({ r, myTickets, isActive });
   });
 
-  // Сортируем: сначала активные (где нужно действие), потом остальные
   rafflesWithData.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0));
 
   rafflesWithData.forEach((data, index) => {
@@ -1147,7 +1142,6 @@ function toggleAccordion(raffleId) {
     icon.innerText = '▲';
   }
 }
-
 async function payBooking(raffleId, orderId) {
   const r = raffles.find(x => x.id === raffleId);
   if (r) {
@@ -1196,6 +1190,7 @@ async function checkExpiredBookings() {
   }
   if (changed) loadRaffles();
 }
+
 function renderParticipants() {
   const list = document.getElementById('participants-list');
   list.innerHTML = '';
@@ -1751,7 +1746,7 @@ async function startDraw() {
         <div style="font-size:14px; color:var(--muted);">Билет № <b>${winnerTicket.num}</b></div>
         <div style="text-align:left; background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; color:#64748b; margin-top:8px;">
           <p>• Розыгрыш: #${currentRaffle.uniqueCode} от ${drawDate}</p>
-          <p>• Всего билетов: ${totalInitialTickets}</p>
+          <p>• Всего билетов: ${totalInitialT<p>• Всего билетов: ${totalInitialTickets}</p>
           <p>• На момент розыгрыша: ${currentTotal}</p>
           <p>• Билетов у ${winnerTicket.owner}: ${ticketsAtStart} (Шанс: ${chance}%)</p>
         </div>
@@ -1791,7 +1786,6 @@ function renderWinners(winners) {
         <div style="font-size:56px; margin-bottom:8px;">🏆</div>
         <div style="color:var(--success); font-weight:800; font-size:13px; margin-bottom:8px;">ПОЗДРАВЛЯЕМ!</div>
         <div style="font-size:22px; font-weight:900; margin-bottom:12px;">${w.owner} ${icon}</div>
-        <div style="background:#f0fdf4; padding:10px; border-radius:10px; margin-bottom:10px; color:var(--accent); font-weight:bold;">${
         <div style="background:#f0fdf4; padding:10px; border-radius:10px; margin-bottom:10px; color:var(--accent); font-weight:bold;">${currentRaffle.prizeName}</div>
         <div style="font-size:14px; color:var(--muted);">Билет № <b>${w.num}</b></div>
         <div style="font-size:12px; color:#64748b; margin-top:8px;">
